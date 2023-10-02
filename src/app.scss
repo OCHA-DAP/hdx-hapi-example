@@ -50,13 +50,24 @@ h2 {
     border-bottom: 1px solid #CCC;
     height: 50px;
     line-height: 49px;
-    margin-top: 25px;
+    margin: 25px 0;
     padding: 0 15px;
   }
 }
+h3 {
+  color: #000;
+  font-family: 'Gotham-Bold', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 21px;
+  margin: 0px 0px 10px; 
+}
 
-.key-figure {
-  padding: 0 15px;
+.small {
+  color: #888;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px;
+  line-height: 14px;
 }
 
 .tabs {
