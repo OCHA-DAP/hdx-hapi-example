@@ -1,19 +1,37 @@
 <script>
-	import * as d3 from 'd3';
+	import { format } from 'd3';
+  import Bar from './Charts/Bar.svelte'
+  import Pie from './Charts/Pie.svelte'
   import Sparkline from './Charts/Sparkline.svelte'
 
-	export let value = 100000;
-	export let format = '.2s';
+  export let title = 'Key figure';
+	export let valueFormat = '.2s';
+	export let seriesType = 'sparkline';
+	export let value = 0;
+	export let series = undefined;
+
+	let keyFigInner, containerWidth, chartWidth, chartHeight;
 
 	let keyVal = parseFloat(value.replaceAll(',', ''));
-	keyVal = d3.format(format)(keyVal).replace(/G/, 'B');
+	keyVal = format(valueFormat)(keyVal).replace(/G/, 'B');
 </script>
 
 <div class='key-figure'>
-	<h3>Key figure</h3>
-	<span class='num'>{keyVal}</span>
+	<h3>{title}</h3>
+	<div class='key-figure-inner' bind:this={keyFigInner} bind:clientWidth={containerWidth}>
+		<span class='num' bind:clientWidth={chartWidth} bind:clientHeight={chartHeight}>{keyVal}</span>
+		{#if series && keyFigInner}
+			{#if seriesType=='bar'}
+				<Bar data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 10} />
+			{:else if seriesType=='pie'}
+				<Pie data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 10} />
+			{:else}
+				<Sparkline data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 5} />
+			{/if}
+		{/if}
+	</div>
 	<div class='small'>
-		MM, DD, YYYY | Source | <a href='#' target='_blank'>DATA</a>
+		MM DD, YYYY | Source | <a href='#' target='_blank'>DATA</a>
 	</div>
 </div>
 
@@ -22,12 +40,17 @@
 	.key-figure {
  		border-bottom: 1px solid #CCC; 
  		padding-bottom: 15px;
+ 		.key-figure-inner {
+    	align-items: center;
+ 			display: flex;
+    	margin: 25px 0 15px;
+ 		}
 		.num {
 			display: block;
 			font-family: 'Gotham-Light', sans-serif;
-			font-size: 52px;
-			line-height: 52px;
-    	margin: 25px 0 15px;
+			font-size: 48px;
+			line-height: 48px;
+			margin-right: 10px;
 		}
 	}
 </style>
