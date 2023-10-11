@@ -105,10 +105,38 @@ h3 {
   }
 }
 
+.select-wrapper {
+  margin-bottom: 30px;
+  position: relative;
+  &:after {
+    color: #CCC;
+    content: '\e94c';
+    font-family: 'Humanitarian-Icons-v02';
+    pointer-events: none;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+}
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #FFF;
+  border-color: #CCC;
+  border-radius: 8px;
+  //box-shadow: 0 0 8px rgba(0,0,0,.3);
+  font: 700 16px 'Source Sans Pro', sans-serif;;
+  height: 48px;
+  padding: 0 20px;
+  position: relative;
+  width: auto;
+}
+
 .content {
   > div {
     border-top: 1px solid #CCC;
-    padding: 15px;
+    margin-left: 15px;
   }
 }
 .map {

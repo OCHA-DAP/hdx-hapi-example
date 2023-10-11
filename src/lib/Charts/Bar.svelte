@@ -3,42 +3,65 @@
 	import { onMount } from 'svelte';
 
 	export let data = [];
-	export let height = 50;
-	export let width = 75;
+	export let title = null;
+	export let valueFormat = d3.format('.2s');
+	export let width = 100;
+	export let barHeight = 16;
+	export let barPadding = 8;
+	export let nameWidth = 80;
+	export let labelWidth = 50;
+	export let textPadding = 10;
 
-	const xAccessor = (d) => d.date;
-	const yAccessor = (d) => d.value;
+	const xAccessor = (d) => d.value;
+	const yAccessor = (d) => d.date;
 
-	let svg;
+	let chartWidth = width - nameWidth - labelWidth;
+	let height = data.length * (barHeight+barPadding);
 
-	let xScale = d3.scaleBand()
-		.domain(data.map(xAccessor))
-		.range([0, width])
-		.padding(0.2);
+	let xScale = d3.scaleLinear()
+  	.domain([0, d3.max(data, xAccessor)])
+		.range([0, chartWidth]);
 
-  let yScale = d3.scaleLinear()
-  	.domain([0, d3.max(data, yAccessor)])
-  	.range([height, 0]);
-
-	onMount(() => {
-	  // append bars
-	  let bars = d3.select(svg).selectAll('.bar')
-	    .data(data)
-	    .enter().append('rect')
-	    .attr('class', 'bar')
-	    .attr('x', (d) => xScale(d.date))
-	    .attr('y', (d) => yScale(d.value))
-	    .attr('height', (d) => (height - yScale(d.value)))
-	    .attr('width', xScale.bandwidth());
-	});
+  let yScale = d3.scaleBand()
+		.domain(data.map(yAccessor))
+  	.range([0, height]);
 </script>
 
+
+{#if title}
+	<h3>{title}</h3>
+{/if}
+
 <div class='bar-container'>
-	<svg bind:this={svg} viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}></svg>
+	<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}>
+		<g>
+			{#each data as d, i}
+				<text class='name' x={nameWidth - textPadding} y={yScale(d.date)}>Name</text>
+				<rect 
+					class='bar'
+					x={nameWidth}
+					y={yScale(d.date)}
+					height={barHeight}
+					width={xScale(d.value)}
+				/>
+				<text class='label' x={nameWidth + xScale(d.value) + textPadding} y={yScale(d.date)}>{valueFormat(d.value)}</text>
+			{/each}
+		</g>
+	</svg>
 </div>
 
 <style lang='scss'>
 	.bar-container {
 		fill: #007CE0;
+	}
+	.axis path {
+		color: #007CE0;
+	}
+	.label,
+	.name {
+		alignment-baseline: hanging;
+	}
+	.name {
+		text-anchor: end;
 	}
 </style>

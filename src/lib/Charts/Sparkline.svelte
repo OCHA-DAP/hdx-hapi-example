@@ -1,6 +1,5 @@
 <script>
 	import * as d3 from 'd3';
-	import { onMount } from 'svelte';
 
 	export let data = [];
 	export let height = 50;
@@ -8,8 +7,6 @@
 
 	const xAccessor = (d) => d.date;
 	const yAccessor = (d) => d.value;
-
-	let svg;
 
 	let xScale = d3.scaleLinear()
 		.domain(d3.extent(data, xAccessor))
@@ -23,22 +20,17 @@
 	  .x((d) => xScale(xAccessor(d)))
 		.y((d) => yScale(yAccessor(d)))
 	  .curve(d3.curveBasis);
-
-
-	onMount(() => {
-	  d3.select(svg).append('path')
-	   .datum(data)
-	   .attr('d', line);
-	});
 </script>
 
 <div class='sparkline'>
-	<svg bind:this={svg} viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}></svg>
+	<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}>
+		<path d={line(data)} />
+	</svg>
 </div>
 
 
 <style lang='scss'>
-	.sparkline {
+	path {
 		fill: none;
 		stroke: #007CE0;
 		stroke-width: 1px;

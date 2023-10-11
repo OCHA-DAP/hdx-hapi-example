@@ -1,6 +1,6 @@
 <script>
 	import { format } from 'd3';
-  import Bar from './Charts/Bar.svelte'
+  import Column from './Charts/Column.svelte'
   import Pie from './Charts/Pie.svelte'
   import Sparkline from './Charts/Sparkline.svelte'
 
@@ -21,12 +21,12 @@
 	<div class='key-figure-inner' bind:this={keyFigInner} bind:clientWidth={containerWidth}>
 		<span class='num' bind:clientWidth={chartWidth} bind:clientHeight={chartHeight}>{keyVal}</span>
 		{#if series && keyFigInner}
-			{#if seriesType=='bar'}
-				<Bar data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 10} />
+			{#if seriesType=='column'}
+				<Column data={series} width={containerWidth-chartWidth} height={chartHeight - 10} />
 			{:else if seriesType=='pie'}
-				<Pie data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 10} />
+				<Pie data={series} width={containerWidth-chartWidth} height={chartHeight - 10} />
 			{:else}
-				<Sparkline data={series} width={containerWidth - chartWidth - 10} height={chartHeight - 5} />
+				<Sparkline data={series} width={containerWidth-chartWidth} height={chartHeight - 5} />
 			{/if}
 		{/if}
 	</div>
@@ -50,7 +50,7 @@
 			font-family: 'Gotham-Light', sans-serif;
 			font-size: 48px;
 			line-height: 48px;
-			margin-right: 10px;
+			padding-right: 10px;
 		}
 	}
 </style>

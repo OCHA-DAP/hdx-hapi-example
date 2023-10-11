@@ -5,6 +5,7 @@
 	export let data = [];
 	export let height = 50;
 	export let width = 75;
+	export let colors = ['#E0E0E0', '#007CE0'];
 
 	let svg;
 
@@ -12,7 +13,7 @@
 
   let color = d3.scaleOrdinal()
     .domain(data)
-    .range(['#E0E0E0', '#007CE0'])
+    .range(colors)
 
 	onMount(() => {
 		let pie = d3.pie();

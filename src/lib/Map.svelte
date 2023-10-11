@@ -9,13 +9,12 @@
 	export let center = [18, 15];
 	export let zoom = 4.8;
 
-	let map;
-	let mapContainer;
+	let map, mapContainer;
 
 	onMount(() => {
 		//calculate available space for map
-		let mapHeight = window.innerHeight - document.getElementsByClassName('map')[0].getBoundingClientRect().top - 30;
-		document.getElementsByClassName('map-container')[0].style.height = mapHeight + 'px';
+		let mapHeight = window.innerHeight - mapContainer.getBoundingClientRect().top - 30;
+		mapContainer.style.height = mapHeight + 'px';
 
 		//init map
 	  map = new mapboxgl.Map({
@@ -26,7 +25,7 @@
 	  });
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
-	    .addControl(new mapboxgl.AttributionControl(), 'bottom-right');
+	     .addControl(new mapboxgl.AttributionControl(), 'bottom-right');
 
 	  map.on('load', function() {
 	    console.log('Map loaded')
@@ -38,12 +37,9 @@
 	});
 </script>
 
-<div class='map-container'>
-  <div class='map' bind:this={mapContainer} />
-</div>
+
+<div bind:this={mapContainer} />
+
 
 <style lang='scss'>
-	.map {
-  	height: 100%;
-	}
 </style>
