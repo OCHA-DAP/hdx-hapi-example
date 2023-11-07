@@ -1,5 +1,6 @@
 <script>
   import { range } from 'd3';
+  import Papa from 'papaparse'
   import { onMount } from 'svelte';
   import KeyFigure from './lib/KeyFigure.svelte'
   import Bar from './lib/Charts/Bar.svelte'
@@ -13,6 +14,20 @@
       };
     })
   };
+
+  // let admin1Data = [];
+  // Papa.parse('https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=csv&offset=0', {
+  //   header: true,
+  //   download: true,
+  //   complete: function(results) {
+  //     admin1Data = results.data
+  //     console.log(admin1Data)
+  //   }
+  // })
+
+  const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
+  let admin1Data = [];
+
 
   //dummy pie data
   let requirement = 90;
@@ -43,7 +58,12 @@
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
 
-  onMount(() => {
+  onMount(async() => {
+
+    // const response = await fetch(url);
+    // admin1Data = await response.json();
+    // console.log(admin1Data)
+
     //calculate available space for ranking chart
     scrollingWrapperHeight = window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 30;
     scrollingWrapper.style.height = scrollingWrapperHeight + 'px';
@@ -93,7 +113,7 @@
 
     </div>
     <div class='main-content col-9'>
-      <Map center={[18, 15]} zoom={4.5} />
+      <Map center={[67, 34]} zoom={5} />
     </div>
   </div>
 </main>

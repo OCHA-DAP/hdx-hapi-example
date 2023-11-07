@@ -5,7 +5,9 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   base: '/viz-datagrid-dashboard/',
-  plugins: [svelte()],
+  plugins: [
+    svelte()
+  ],
   resolve: {
     alias: {
       "pages": path.resolve("./src/pages")
