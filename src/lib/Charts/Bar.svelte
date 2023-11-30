@@ -8,23 +8,31 @@
 	export let width = 100;
 	export let barHeight = 16;
 	export let barPadding = 8;
-	export let nameWidth = 80;
+	export let nameWidth = 100;
 	export let labelWidth = 50;
 	export let textPadding = 10;
 
+	let chartWidth, height, xScale, yScale;
+
+	$: rankingData = data.sort((a, b) => b.value - a.value);;
+
 	const xAccessor = (d) => d.value;
-	const yAccessor = (d) => d.date;
+	const yAccessor = (d) => d.name;
 
-	let chartWidth = width - nameWidth - labelWidth;
-	let height = data.length * (barHeight+barPadding);
+	$: rankingData && init()
 
-	let xScale = d3.scaleLinear()
-  	.domain([0, d3.max(data, xAccessor)])
-		.range([0, chartWidth]);
+	function init() {
+		chartWidth = width - nameWidth - labelWidth;
+		height = rankingData.length * (barHeight+barPadding);
 
-  let yScale = d3.scaleBand()
-		.domain(data.map(yAccessor))
-  	.range([0, height]);
+		xScale = d3.scaleLinear()
+	  	.domain([0, d3.max(rankingData, xAccessor)])
+			.range([0, chartWidth]);
+
+	  yScale = d3.scaleBand()
+			.domain(rankingData.map(yAccessor))
+	  	.range([0, height]);
+	}
 </script>
 
 
@@ -35,16 +43,16 @@
 <div class='bar-container'>
 	<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}>
 		<g>
-			{#each data as d, i}
-				<text class='name' x={nameWidth - textPadding} y={yScale(d.date)}>Name</text>
+			{#each rankingData as d, i}
+				<text class='name' x={nameWidth - textPadding} y={yScale(d.name)}>{d.name}</text>
 				<rect 
 					class='bar'
 					x={nameWidth}
-					y={yScale(d.date)}
+					y={yScale(d.name)}
 					height={barHeight}
 					width={xScale(d.value)}
 				/>
-				<text class='label' x={nameWidth + xScale(d.value) + textPadding} y={yScale(d.date)}>{valueFormat(d.value)}</text>
+				<text class='label' x={nameWidth + xScale(d.value) + textPadding} y={yScale(d.name)}>{valueFormat(d.value)}</text>
 			{/each}
 		</g>
 	</svg>

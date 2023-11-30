@@ -9,11 +9,12 @@
 	export let seriesType = 'sparkline';
 	export let value = 0;
 	export let series = undefined;
+	export let source = 'Source';
 
 	let keyFigInner, containerWidth, chartWidth, chartHeight;
 
-	let keyVal = parseFloat(value.replaceAll(',', ''));
-	keyVal = format(valueFormat)(keyVal).replace(/G/, 'B');
+	$: keyVal = value.toString().replace(/,/g, '');
+	$: keyVal = (keyVal>0) ? format(valueFormat)(keyVal).replace(/G/, 'B') : keyVal;
 </script>
 
 <div class='key-figure'>
@@ -31,7 +32,7 @@
 		{/if}
 	</div>
 	<div class='small'>
-		MM DD, YYYY | Source | <a href='#' target='_blank'>DATA</a>
+		MM DD, YYYY | {source} | <a href='#' target='_blank'>DATA</a>
 	</div>
 </div>
 

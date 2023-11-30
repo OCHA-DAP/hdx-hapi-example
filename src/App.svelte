@@ -1,5 +1,5 @@
 <script>
-  import { range } from 'd3';
+  import * as d3 from 'd3';
   import Papa from 'papaparse'
   import { onMount } from 'svelte';
   import KeyFigure from './lib/KeyFigure.svelte'
@@ -7,7 +7,7 @@
   import Map from './lib/Map.svelte'
 
   const randomData = (seriesCount) => {
-    return range(seriesCount).map(function (d) {
+    return d3.range(seriesCount).map(function (d) {
       return {
         date: d,
         value: Math.random(d)*100
@@ -15,18 +15,17 @@
     })
   };
 
-  // let admin1Data = [];
-  // Papa.parse('https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=csv&offset=0', {
-  //   header: true,
-  //   download: true,
-  //   complete: function(results) {
-  //     admin1Data = results.data
-  //     console.log(admin1Data)
-  //   }
-  // })
+  let countryData = [];
+  Papa.parse('https://hapi-testing.innovation.humdata.org/api/location?output_format=csv&limit=1000&offset=0', {
+    header: true,
+    download: true,
+    complete: function(results) {
+      countryData = results.data
+    }
+  })
 
-  const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
-  let admin1Data = [];
+  // const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
+  // let admin1Data = [];
 
 
   //dummy pie data
@@ -46,23 +45,54 @@
   ];
 
   let tabs = [
-    {title: 'People in Need', id: ''},
-    {title: 'Internally Displaced People', id: ''},
-    {title: 'Refugees', id: ''},
-    {title: 'Returnees', id: ''},
-    {title: 'Organizations', id: ''},
-    {title: 'Food Insecurity', id: ''},
-    {title: 'Malnutrition', id: ''},
-    {title: 'Health', id: ''},
+    {title: 'Population', id: ''},
+    {title: '3W', id: ''},
+    // {title: 'People in Need', id: ''},
+    // {title: 'Internally Displaced People', id: ''},
+    // {title: 'Refugees', id: ''},
+    // {title: 'Returnees', id: ''},
+    // {title: 'Organizations', id: ''},
+    // {title: 'Food Insecurity', id: ''},
+    // {title: 'Malnutrition', id: ''},
+    // {title: 'Health', id: ''},
   ];
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
 
-  onMount(async() => {
+  let countrySelect = 'AFG'
+  $: selected = countryData.find((c) => {
+    return c.code === countrySelect 
+  });
 
+  //Total key figure
+  $: totalValue = 0;
+  $: rankingData = [];
+
+  function getPopulationbyCountry(iso3) {
+    Papa.parse(`https://hapi-testing.innovation.humdata.org/api/themes/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=1000&offset=0`, {
+      header: true,
+      download: true,
+      complete: function(results) {
+        //console.log(results.data[0].dataset_hdx_stub, results.data[0].resource_hdx_id)
+
+        let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code !== ''), d => d.population), d => d.admin1_name)
+        let arr = [];
+        popByAdm.forEach(function(value, key) {
+          if (key !== undefined)
+            arr.push({name: key, value: value});
+        })
+
+        rankingData = arr;
+        totalValue = d3.sum(popByAdm.values());
+      }
+    })
+  }
+
+  onMount(async() => {
     // const response = await fetch(url);
     // admin1Data = await response.json();
     // console.log(admin1Data)
+    getPopulationbyCountry(countrySelect);
 
     //calculate available space for ranking chart
     scrollingWrapperHeight = window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 30;
@@ -71,7 +101,20 @@
 </script>
 
 <main>
-  <h1>Title</h1>
+  <div class='select-wrapper'>
+    <select bind:value={countrySelect} on:change={() => getPopulationbyCountry(countrySelect)}>
+      {#each countryData as {code, name}}
+        {#if code!=''}
+          <option value={code}>{name}</option>
+        {/if}
+      {/each}
+    </select>
+  </div> 
+
+
+  {#if selected!=undefined}
+    <h1>{selected.name}</h1>
+  {/if}
   
   <h2 class='header'>Header</h2>
   <div class='grid-container key-figure-container'>
@@ -100,13 +143,13 @@
 
   <div class='content grid-container'>
     <div class='sidebar col-3' bind:clientWidth={sidebarWidth}>
-      <KeyFigure value={'300000'} series={randomData(10)} />
+      <KeyFigure title={'Total'} value={totalValue} source={'HDX'} /><!-- series={randomData(10)} -->
 
       <h3 class='chart-title'>Ranking</h3>
       <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
         {#if sidebarWidth>0}
           <div class='ranking-container'>
-            <Bar data={randomData(20)} width={sidebarWidth} />
+            <Bar data={rankingData} width={sidebarWidth} />
           </div>
         {/if}
       </div>
