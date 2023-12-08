@@ -27,7 +27,6 @@
   // const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
   // let admin1Data = [];
 
-
   //dummy pie data
   let requirement = 90;
   let funded = 15;
@@ -45,8 +44,8 @@
   ];
 
   let tabs = [
-    {title: 'Population', id: ''},
-    {title: '3W', id: ''},
+    {title: 'Population', id: 'population'},
+    {title: '3W', id: '3w'},
     // {title: 'People in Need', id: ''},
     // {title: 'Internally Displaced People', id: ''},
     // {title: 'Refugees', id: ''},
@@ -66,16 +65,22 @@
 
   //Total key figure
   $: totalValue = 0;
+
   $: rankingData = [];
+  $: metadata = {};
+  $: currentLayer = 'population';
 
   function getPopulationbyCountry(iso3) {
     Papa.parse(`https://hapi-testing.innovation.humdata.org/api/themes/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=1000&offset=0`, {
       header: true,
       download: true,
       complete: function(results) {
-        //console.log(results.data[0].dataset_hdx_stub, results.data[0].resource_hdx_id)
+        if (results.data[0] !== undefined) {
+          let metadataURL = `https://hapi-testing.innovation.humdata.org/api/resource?hdx_id=${results.data[0].resource_hdx_id}&output_format=csv`;
+          getMetadata(metadataURL);
+        }
 
-        let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code !== ''), d => d.population), d => d.admin1_name)
+        let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code === ''), d => d.population), d => d.admin1_name)
         let arr = [];
         popByAdm.forEach(function(value, key) {
           if (key !== undefined)
@@ -88,6 +93,57 @@
     })
   }
 
+  function getOrgsbyCountry(iso3) {
+    Papa.parse(`https://hapi-testing.innovation.humdata.org/api/themes/3W?location_code=${iso3}&output_format=csv&offset=0`, {
+      header: true,
+      download: true,
+      complete: function(results) {
+        if (results.data[0] !== undefined) {
+          let metadataURL = `https://hapi-testing.innovation.humdata.org/api/resource?hdx_id=${results.data[0].resource_hdx_id}&output_format=csv`;
+          getMetadata(metadataURL);
+        }
+
+        let orgsByAdm = d3.rollup(results.data, v => v.length, d => d.admin1_name);
+        let arr = [];
+        orgsByAdm.forEach(function(value, key) {
+          if (key !== undefined)
+            arr.push({name: key, value: value});
+        })
+
+        rankingData = arr;
+        totalValue = d3.sum(orgsByAdm.values());
+      }
+    })
+  }
+
+  function getMetadata(url) {
+    Papa.parse(url, {
+      header: true,
+      download: true,
+      complete: function(results) {
+        metadata.date = results.data[0].update_date;
+        metadata.datasetURL = results.data[0].dataset_hdx_link;
+        metadata.provider = results.data[0].dataset_hdx_provider_name;
+      }
+    })
+  }
+
+  function getCountryData(iso3) {
+    if (currentLayer === '3w')
+      getOrgsbyCountry(iso3);
+    else
+      getPopulationbyCountry(iso3);
+  }
+
+  function onLayerChange(id) {
+    currentLayer = id;
+
+    if (currentLayer === '3w')
+      getOrgsbyCountry(countrySelect);
+    else
+      getPopulationbyCountry(countrySelect);
+  }
+
   onMount(async() => {
     // const response = await fetch(url);
     // admin1Data = await response.json();
@@ -95,14 +151,14 @@
     getPopulationbyCountry(countrySelect);
 
     //calculate available space for ranking chart
-    scrollingWrapperHeight = window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 30;
+    scrollingWrapperHeight = window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
     scrollingWrapper.style.height = scrollingWrapperHeight + 'px';
   });
 </script>
 
 <main>
   <div class='select-wrapper'>
-    <select bind:value={countrySelect} on:change={() => getPopulationbyCountry(countrySelect)}>
+    <select bind:value={countrySelect} on:change={() => getCountryData(countrySelect)}>
       {#each countryData as {code, name}}
         {#if code!=''}
           <option value={code}>{name}</option>
@@ -129,7 +185,7 @@
 
   <div class='tabs'>
     {#each tabs as {title, id}, i}
-      <div class={`tab ${i==0 ? 'active' : ''}`}><a href='#' {title}>{title}</a></div>
+      <div class='tab' class:active={id === currentLayer} on:click={() => onLayerChange(id)}><a href='#' {title}>{title}</a></div>
     {/each}
   </div>
 
@@ -143,7 +199,7 @@
 
   <div class='content grid-container'>
     <div class='sidebar col-3' bind:clientWidth={sidebarWidth}>
-      <KeyFigure title={'Total'} value={totalValue} source={'HDX'} /><!-- series={randomData(10)} -->
+      <KeyFigure title={'Total'} value={totalValue} metadata={metadata} /><!-- series={randomData(10)} -->
 
       <h3 class='chart-title'>Ranking</h3>
       <div class='scrolling-wrapper' bind:this={scrollingWrapper}>

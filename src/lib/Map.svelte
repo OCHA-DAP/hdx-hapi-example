@@ -18,7 +18,7 @@
 
 	onMount(() => {
 		//calculate available space for map
-		let mapHeight = window.innerHeight - mapContainer.getBoundingClientRect().top - 30;
+		let mapHeight = window.innerHeight - mapContainer.getBoundingClientRect().top - 80;
 		mapContainer.style.height = mapHeight + 'px';
 
 		//init map

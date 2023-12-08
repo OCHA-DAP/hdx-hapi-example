@@ -1,5 +1,5 @@
 <script>
-	import { format } from 'd3';
+  import * as d3 from 'd3';
   import Column from './Charts/Column.svelte'
   import Pie from './Charts/Pie.svelte'
   import Sparkline from './Charts/Sparkline.svelte'
@@ -9,12 +9,18 @@
 	export let seriesType = 'sparkline';
 	export let value = 0;
 	export let series = undefined;
-	export let source = 'Source';
+	export let metadata = {};
 
+	let dateFormat = d3.utcFormat("%b %d, %Y");
 	let keyFigInner, containerWidth, chartWidth, chartHeight;
 
+	//key figure value
 	$: keyVal = value.toString().replace(/,/g, '');
-	$: keyVal = (keyVal>0) ? format(valueFormat)(keyVal).replace(/G/, 'B') : keyVal;
+	$: keyVal = (keyVal>0) ? d3.format(valueFormat)(keyVal).replace(/G/, 'B') : keyVal;
+
+	//metadata values
+	$: updatedDate = (metadata.date==undefined) ? 'MM DD, YYYY' : dateFormat(new Date(metadata.date));
+	$: provider = metadata.provider ?? 'Source';
 </script>
 
 <div class='key-figure'>
@@ -32,7 +38,7 @@
 		{/if}
 	</div>
 	<div class='small'>
-		MM DD, YYYY | {source} | <a href='#' target='_blank'>DATA</a>
+		{updatedDate} | {provider} | <a href={metadata.datasetURL} target='_blank'>DATA</a>
 	</div>
 </div>
 
