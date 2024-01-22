@@ -5,6 +5,7 @@
   import KeyFigure from './lib/KeyFigure.svelte'
   import Bar from './lib/Charts/Bar.svelte'
   import Map from './lib/Map.svelte'
+  import Pyramid from './lib/Charts/Pyramid.svelte'
 
   const randomData = (seriesCount) => {
     return d3.range(seriesCount).map(function (d) {
@@ -56,6 +57,15 @@
     // {title: 'Health', id: ''},
   ];
 
+  // let ageData = [
+  //   {age_range_code: "<5", gender_code: "m", total_population: 10175713},
+  //   {age_range_code: "<5", gender_code: "f", total_population: 9736305},
+  //   {age_range_code: "5-9", gender_code: "m", total_population: 10470147},
+  //   {age_range_code: "5-9", gender_code: "f", total_population: 10031835},
+  //   {age_range_code: "10-14", gender_code: "m", total_population: 10561873},
+  //   {age_range_code: "10-14", gender_code: "f", total_population: 10117913}
+  // ];
+
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
 
   let countrySelect = 'AFG'
@@ -67,6 +77,7 @@
   $: totalValue = 0;
 
   $: rankingData = [];
+  $: ageData = [];
   $: metadata = {};
   $: currentLayer = 'population';
 
@@ -80,6 +91,34 @@
           getMetadata(metadataURL);
         }
 
+        const ages = results.data.reduce((acc, { gender_code, age_range_code, population }) => {
+            //skip entries with empty gender_code or age_range_code
+            if (!gender_code.trim() || !age_range_code.trim()) {
+              return acc;
+            }
+
+            //create unique key for each gender/age combo
+            const key = `${gender_code}_${age_range_code}`;
+
+            //create accumulator if it doesnt exist dor this age/gender combo
+            if (!acc[key]) {
+              acc[key] = {
+                gender_code,
+                age_range_code,
+                total_population: 0
+              };
+            }
+
+            //get total pop for this age/gender combo
+            acc[key].total_population += +population;
+
+            return acc;
+        }, {});
+
+        //assign data for population pyramid
+        ageData = Object.values(ages);
+
+        //get population per adm area
         let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code === ''), d => d.population), d => d.admin1_name)
         let arr = [];
         popByAdm.forEach(function(value, key) {
@@ -87,6 +126,7 @@
             arr.push({name: key, value: value});
         })
 
+        //assign data for ranking chart
         rankingData = arr;
         totalValue = d3.sum(popByAdm.values());
       }
@@ -115,6 +155,7 @@
       }
     })
   }
+
 
   function getMetadata(url) {
     Papa.parse(url, {
@@ -151,7 +192,7 @@
     getPopulationbyCountry(countrySelect);
 
     //calculate available space for ranking chart
-    scrollingWrapperHeight = window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
+    scrollingWrapperHeight = 400;//window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
     scrollingWrapper.style.height = scrollingWrapperHeight + 'px';
   });
 </script>
@@ -207,12 +248,17 @@
           <div class='ranking-container'>
             <Bar data={rankingData} width={sidebarWidth} />
           </div>
+
         {/if}
       </div>
 
     </div>
     <div class='main-content col-9'>
       <Map center={[67, 34]} zoom={5} />
+    </div>
+
+    <div class='col-12'>
+      <Pyramid data={ageData} title={'Population Pyramid'} width={700} />
     </div>
   </div>
 </main>

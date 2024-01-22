@@ -12,13 +12,13 @@
 
 	let map, mapContainer, geojson;
 
-	let colorRange = ['#F7FCB9', '#D9F0A3', '#ADDD8E', '#78C679', '#41AB5D'];
+	let colorRange = ['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
 	let tooltip = d3.select('.tooltip');
 	let numFormat = d3.format(',');
 
 	onMount(() => {
 		//calculate available space for map
-		let mapHeight = window.innerHeight - mapContainer.getBoundingClientRect().top - 80;
+		let mapHeight = 600;//window.innerHeight - mapContainer.getBoundingClientRect().top - 80;
 		mapContainer.style.height = mapHeight + 'px';
 
 		//init map
