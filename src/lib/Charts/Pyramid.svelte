@@ -62,18 +62,17 @@
 					height={y.bandwidth()}
 					width={d.gender_code === 'm' ? xM(0) - xM(d.total_population) : xF(d.total_population) - xF(0)}
 				/>
+      	<text 
+          text-anchor={d.gender_code === 'm' ? 'start' : 'end'}
+          x={d.gender_code === 'm' ? xM(d.total_population) + 4 : xF(d.total_population) - 4}
+          y={y(d.age_range_code) + y.bandwidth() / 2}
+  				dx={(d.gender_code === 'm' && (xM(0) - xM(d.total_population)) < 80) ? '-35' : (d.gender_code === 'f' && (xM(0) - xM(d.total_population)) < 80) ? '50' : ''}
+          dy={'0.35em'}>
+          {valueFormat(d.total_population)}
+        </text>
 			{/each}
 		</g>
-		<g fill='black'>
-			{#each ageData as d, i}
-				<text 
-					text-anchor={d.gender_code === 'm' ? 'start' : 'end'}
-					x={d.gender_code === 'm' ? xM(d.total_population) + 4 : xF(d.total_population) - 4}
-					y={y(d.age_range_code) + y.bandwidth() / 2} 
-					dy={'0.35em'}>
-					{valueFormat(d.total_population)}
-				</text>
-			{/each}
+		<g>
 			{#if ageData.length>0}
 				<text
 					fill={'black'}
