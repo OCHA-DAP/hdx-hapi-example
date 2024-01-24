@@ -202,9 +202,9 @@
   </div> 
 
 
-  {#if selected!=undefined}
+<!--   {#if selected!=undefined}
     <h1>{selected.name}</h1>
-  {/if}
+  {/if} -->
   
   <h2 class='header'>Header</h2>
   <div class='grid-container key-figure-container'>
@@ -270,5 +270,11 @@
   }
   .scrolling-wrapper {
     overflow-y: scroll;
+  }
+  .select-wrapper {
+    margin-top: 20px;
+  }
+  select {
+    font-size: 20px;
   }
 </style>
