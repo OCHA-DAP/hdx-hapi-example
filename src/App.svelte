@@ -57,15 +57,6 @@
     // {title: 'Health', id: ''},
   ];
 
-  // let ageData = [
-  //   {age_range_code: "<5", gender_code: "m", total_population: 10175713},
-  //   {age_range_code: "<5", gender_code: "f", total_population: 9736305},
-  //   {age_range_code: "5-9", gender_code: "m", total_population: 10470147},
-  //   {age_range_code: "5-9", gender_code: "f", total_population: 10031835},
-  //   {age_range_code: "10-14", gender_code: "m", total_population: 10561873},
-  //   {age_range_code: "10-14", gender_code: "f", total_population: 10117913}
-  // ];
-
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
 
   let countrySelect = 'AFG'
@@ -142,6 +133,8 @@
           let metadataURL = `https://hapi-testing.innovation.humdata.org/api/resource?hdx_id=${results.data[0].resource_hdx_id}&output_format=csv`;
           getMetadata(metadataURL);
         }
+
+        //console.log(results.data)
 
         let orgsByAdm = d3.rollup(results.data, v => v.length, d => d.admin1_name);
         let arr = [];
@@ -239,26 +232,24 @@
   </div> -->
 
   <div class='content grid-container'>
-    <div class='sidebar col-3' bind:clientWidth={sidebarWidth}>
+    <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
       <KeyFigure title={'Total'} value={totalValue} metadata={metadata} /><!-- series={randomData(10)} -->
 
-      <h3 class='chart-title'>Ranking</h3>
+      <h3 class='chart-title'>Ranking (Top 10)</h3>
       <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
         {#if sidebarWidth>0}
           <div class='ranking-container'>
             <Bar data={rankingData} width={sidebarWidth} />
           </div>
-
+          {#if currentLayer==='population'}
+            <Pyramid data={ageData} title={'Population Pyramid'} width={sidebarWidth} />
+          {/if}
         {/if}
       </div>
 
     </div>
-    <div class='main-content col-9'>
+    <div class='main-content col-7'>
       <Map center={[67, 34]} zoom={5} />
-    </div>
-
-    <div class='col-12'>
-      <Pyramid data={ageData} title={'Population Pyramid'} width={700} />
     </div>
   </div>
 </main>

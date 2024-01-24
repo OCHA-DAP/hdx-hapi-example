@@ -106,4 +106,7 @@
 <div bind:this={mapContainer} />
 
 <style lang='scss'>
+	div {
+		margin-bottom: 20px;
+	}
 </style>
