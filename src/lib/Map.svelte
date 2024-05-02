@@ -1,8 +1,9 @@
 <script>
+	import { onMount, onDestroy } from 'svelte';
 	import mapboxgl from 'mapbox-gl';
 	import * as d3 from 'd3';
-	import { onMount, onDestroy } from 'svelte';
-	import '../../node_modules/mapbox-gl/dist/mapbox-gl.css'
+	import { legendColor } from 'd3-svg-legend';
+	import '../../node_modules/mapbox-gl/dist/mapbox-gl.css';
 
 	mapboxgl.baseApiUrl = 'https://data.humdata.org/mapbox';
 	mapboxgl.accessToken = 'cacheToken';
@@ -10,7 +11,7 @@
 	export let center = [67, 33];
 	export let zoom = 4.8;
 
-	let map, mapContainer, geojson;
+	let map, mapContainer, geojson, mapLegend, colorScale;
 
 	let colorRange = ['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
 	let tooltip = d3.select('.tooltip');
@@ -24,13 +25,13 @@
 		//init map
 	  map = new mapboxgl.Map({
 	    container: mapContainer,
-	    style: `mapbox://styles/humdata/cl3lpk27k001k15msafr9714b`,
+	    style: 'mapbox://styles/humdata/cl3lpk27k001k15msafr9714b',
 	    center: center,
 	    zoom: zoom
 	  });
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
-	    .addControl(new mapboxgl.AttributionControl(), 'bottom-left');
+	     .addControl(new mapboxgl.AttributionControl(), 'bottom-left');
 
 	  tooltip = new mapboxgl.Popup({
 			closeButton: false,
@@ -46,13 +47,23 @@
 	});
 
 	async function loadFeatures() {
+		// d3.json("updated_data.geojson", function(err, geojson) { 
+
+		// 	console.log('geojson loaded')
+
+		// })
+
+
 		const response = await fetch('updated_data.geojson', {
 			body: JSON.stringify()
 		});
 	  geojson = await response.json();
 
   	const max = d3.max(geojson.features, function(d) { return +d.properties['population_f_80+']; });
-  	const colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
+  	colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
+
+
+	  //createMapLegend();
 
 	  geojson.features.forEach(function(f) {
 	    let prop = f.properties;
@@ -70,9 +81,9 @@
 	    type: 'fill',
 	    paint: {
       	'fill-color': ['get', 'color'],
-	      'fill-outline-color': '#E0E0E0'
+	      'fill-outline-color': '#FFFFFF'
 	    }
-	  });
+	  }, 'Countries 2-4');
 
 	   //mouse events
 	  map.on('mouseenter', 'population-layer', onMouseEnter);
@@ -85,6 +96,22 @@
 	      .addTo(map)
 	      .setLngLat(e.lngLat);
 	  });
+	}
+
+	function createMapLegend() {
+	  var svg = d3.select(mapLegend);
+
+		svg.append("g")
+		  .attr("class", "legendQuant")
+		  .attr("transform", "translate(20,20)");
+
+		var colorLegend = legendColor()
+	    //.labelFormat(d3.format(".2f"))
+	    //.useClass(true)
+	    .scale(colorScale);
+
+		svg.select(".legendQuant")
+		  .call(colorLegend);
 	}
 
 	//mouse event/leave events
@@ -104,6 +131,7 @@
 
 
 <div bind:this={mapContainer} />
+<div bind:this={mapLegend} class='help' />
 
 <style lang='scss'>
 	div {

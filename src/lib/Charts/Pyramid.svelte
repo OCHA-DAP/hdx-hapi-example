@@ -10,7 +10,6 @@
 	let height, margin, xM, xF, y, gx, gy, gyg, xAxis, yAxis, yAxisGrid;
 
   $: ageData = reorderArray(data);//data.sort((a, b) => b.total_population - a.total_population);
-  $: console.log(ageData)
   $: ageData && init()
 
   function reorderArray(arr) {

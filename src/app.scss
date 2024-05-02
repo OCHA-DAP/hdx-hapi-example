@@ -144,3 +144,21 @@ select {
   background-color: #EFEFEF;
   height: 500px;
 }
+.mapboxgl-popup.map-tooltip {
+  z-index: 3;
+  .mapboxgl-popup-content {
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0,0,0,.3);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 18px;
+    padding: 15px;
+    h2 {
+      margin-top: 0;
+    }
+    a {
+      outline: none;
+    }
+  }
+}

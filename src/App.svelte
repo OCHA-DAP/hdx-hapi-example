@@ -6,6 +6,8 @@
   import Bar from './lib/Charts/Bar.svelte'
   import Map from './lib/Map.svelte'
   import Pyramid from './lib/Charts/Pyramid.svelte'
+  import Population from './lib/Population.svelte'
+  import Population2 from './lib/Population2.svelte'
 
   const randomData = (seriesCount) => {
     return d3.range(seriesCount).map(function (d) {
@@ -190,6 +192,8 @@
   });
 </script>
 
+<Population />
+
 <main>
   <div class='select-wrapper'>
     <select bind:value={countrySelect} on:change={() => getCountryData(countrySelect)}>
@@ -246,6 +250,8 @@
           {/if}
         {/if}
       </div>
+
+      <Population2 />
 
     </div>
     <div class='main-content col-7'>

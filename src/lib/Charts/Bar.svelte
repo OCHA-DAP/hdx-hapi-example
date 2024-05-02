@@ -15,7 +15,6 @@
 	let chartWidth, height, xScale, yScale;
 
 	$: rankingData = data.sort((a, b) => b.value - a.value).slice(0,10);
-	$: console.log(rankingData)
 
 	const xAccessor = (d) => d.value;
 	const yAccessor = (d) => d.name;
