@@ -26,10 +26,12 @@
 		margin = ({top: 10, right: 5, bottom: 20, left: 40});
 		height = ageData.length / 2 * 25 + margin.top + margin.bottom;
 
+		//scale for male
 		xM = d3.scaleLinear()
 	    .domain([0, d3.max(ageData, d => d.total_population)])
 	    .rangeRound([width / 2, margin.left])
 
+	  //scake for female
 	  xF = d3.scaleLinear()
 	    .domain(xM.domain())
 	    .rangeRound([width / 2, width - margin.right])

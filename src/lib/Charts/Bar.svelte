@@ -17,7 +17,7 @@
 	$: rankingData = data.sort((a, b) => b.value - a.value).slice(0,10);
 
 	const xAccessor = (d) => d.value;
-	const yAccessor = (d) => d.name;
+	const yAccessor = (d) => d.admin1_name;
 
 	$: rankingData && init()
 
@@ -44,15 +44,15 @@
 	<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}>
 		<g>
 			{#each rankingData as d, i}
-				<text class='name' x={nameWidth - textPadding} y={yScale(d.name)}>{d.name}</text>
+				<text class='name' x={nameWidth - textPadding} y={yScale(d.admin1_name)}>{d.admin1_name}</text>
 				<rect 
 					class='bar'
 					x={nameWidth}
-					y={yScale(d.name)}
+					y={yScale(d.admin1_name)}
 					height={barHeight}
 					width={xScale(d.value)}
 				/>
-				<text class='label' x={nameWidth + xScale(d.value) + textPadding} y={yScale(d.name)}>{valueFormat(d.value)}</text>
+				<text class='label' x={nameWidth + xScale(d.value) + textPadding} y={yScale(d.admin1_name)}>{valueFormat(d.value)}</text>
 			{/each}
 		</g>
 	</svg>

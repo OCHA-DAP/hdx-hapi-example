@@ -7,7 +7,6 @@
   import Map from './lib/Map.svelte'
   import Pyramid from './lib/Charts/Pyramid.svelte'
   import Population from './lib/Population.svelte'
-  import Population2 from './lib/Population2.svelte'
 
   const randomData = (seriesCount) => {
     return d3.range(seriesCount).map(function (d) {
@@ -23,7 +22,7 @@
     header: true,
     download: true,
     complete: function(results) {
-      countryData = results.data
+      countryData = results.data;
     }
   })
 
@@ -79,49 +78,68 @@
       header: true,
       download: true,
       complete: function(results) {
+        console.log('---results', results.data)
         if (results.data[0] !== undefined) {
           let metadataURL = `https://hapi-testing.innovation.humdata.org/api/resource?hdx_id=${results.data[0].resource_hdx_id}&output_format=csv`;
           getMetadata(metadataURL);
         }
 
         const ages = results.data.reduce((acc, { gender_code, age_range_code, population }) => {
-            //skip entries with empty gender_code or age_range_code
-            if (!gender_code.trim() || !age_range_code.trim()) {
-              return acc;
-            }
-
-            //create unique key for each gender/age combo
-            const key = `${gender_code}_${age_range_code}`;
-
-            //create accumulator if it doesnt exist dor this age/gender combo
-            if (!acc[key]) {
-              acc[key] = {
-                gender_code,
-                age_range_code,
-                total_population: 0
-              };
-            }
-
-            //get total pop for this age/gender combo
-            acc[key].total_population += +population;
-
+          //skip entries with empty gender_code or age_range_code
+          if (!gender_code.trim() || !age_range_code.trim()) {
             return acc;
+          }
+
+          //create unique key for each gender/age combo
+          const key = `${gender_code}_${age_range_code}`;
+
+          //create accumulator if it doesnt exist for this age/gender combo
+          if (!acc[key]) {
+            acc[key] = {
+              gender_code,
+              age_range_code,
+              total_population: 0
+            };
+          }
+
+          //get total pop for this age/gender combo
+          acc[key].total_population += +population;
+
+          return acc;
         }, {});
 
         //assign data for population pyramid
         ageData = Object.values(ages);
 
         //get population per adm area
-        let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code === ''), d => d.population), d => d.admin1_name)
-        let arr = [];
-        popByAdm.forEach(function(value, key) {
-          if (key !== undefined)
-            arr.push({name: key, value: value});
-        })
+        //let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code === ''), d => d.population), d => d.admin1_name+'_'+d.admin1_code);
+
+        let popByAdm = d3.rollup(
+          results.data,
+          v => {
+            const filteredData = v.filter(d => d.age_range_code === '' && d.gender_code === '');
+            return {
+              admin1_code: filteredData[0] ? filteredData[0].admin1_code : null,
+              population: d3.sum(filteredData, d => d.population)
+            };
+          },
+          d => d.admin1_name
+        );
+
+        // Convert the rollup result to an array for easier manipulation and readability
+        let popByAdmArray = Array.from(popByAdm, ([admin1_name, values]) => {
+          if (admin1_name !== undefined) {
+            return {
+              admin1_name: admin1_name,
+              admin1_code: values.admin1_code,
+              value: values.population
+            };
+          }
+        }).filter(d => d !== undefined);
 
         //assign data for ranking chart
-        rankingData = arr;
-        totalValue = d3.sum(popByAdm.values());
+        rankingData = popByAdmArray;
+        totalValue = d3.sum(popByAdmArray, d => d.value);
       }
     })
   }
@@ -136,17 +154,34 @@
           getMetadata(metadataURL);
         }
 
-        //console.log(results.data)
+        console.log(results.data)
 
-        let orgsByAdm = d3.rollup(results.data, v => v.length, d => d.admin1_name);
-        let arr = [];
-        orgsByAdm.forEach(function(value, key) {
-          if (key !== undefined)
-            arr.push({name: key, value: value});
-        })
+        const admin1Stats = {};
+        results.data.forEach(row => {
+          const admin1Name = row.admin1_name;
+          const admin1Code = row.admin1_code;
+          const orgName = row.org_name;
+          const sectorName = row.sector_name;
 
-        rankingData = arr;
-        totalValue = d3.sum(orgsByAdm.values());
+          if (!admin1Stats[admin1Code]) {
+            admin1Stats[admin1Code] = {
+              admin1_name: admin1Name,
+              admin1_code: admin1Code,
+              value: 0,
+              orgs: {},
+              sectors: {}
+            };
+          }
+
+          admin1Stats[admin1Code].value += 1;
+          admin1Stats[admin1Code].orgs[orgName] = (admin1Stats[admin1Code].orgs[orgName] || 0) + 1;
+          admin1Stats[admin1Code].sectors[sectorName] = (admin1Stats[admin1Code].sectors[sectorName] || 0) + 1;
+        });
+
+        // Convert stats object to array
+        rankingData = Object.values(admin1Stats);
+        totalValue = d3.sum(rankingData, d => d.value);
+        console.log('rankingData',rankingData)
       }
     })
   }
@@ -181,9 +216,6 @@
   }
 
   onMount(async() => {
-    // const response = await fetch(url);
-    // admin1Data = await response.json();
-    // console.log(admin1Data)
     getPopulationbyCountry(countrySelect);
 
     //calculate available space for ranking chart
@@ -205,10 +237,6 @@
     </select>
   </div> 
 
-
-<!--   {#if selected!=undefined}
-    <h1>{selected.name}</h1>
-  {/if} -->
   
   <h2 class='header'>Header</h2>
   <div class='grid-container key-figure-container'>
@@ -251,11 +279,11 @@
         {/if}
       </div>
 
-      <Population2 />
-
     </div>
     <div class='main-content col-7'>
-      <Map center={[67, 34]} zoom={5} />
+      {#if rankingData.length>0}
+        <Map center={[67, 34]} zoom={5} rankingData={rankingData} THEME={currentLayer} LOCATION={countrySelect} />
+      {/if}
     </div>
   </div>
 </main>
