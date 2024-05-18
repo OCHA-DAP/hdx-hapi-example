@@ -62,6 +62,9 @@ h3 {
   line-height: 21px;
   margin: 0px 0px 10px; 
 }
+h4 {
+  margin-top: 0;
+}
 h5 {
   color: #000;
   font-family: 'Gotham-Bold', sans-serif;
@@ -139,7 +142,7 @@ select {
   border-color: #CCC;
   border-radius: 8px;
   //box-shadow: 0 0 8px rgba(0,0,0,.3);
-  font: 700 18px 'Source Sans Pro', sans-serif;;
+  font: 700 18px 'Source Sans Pro', sans-serif;
   height: 48px;
   padding: 0 20px;
   position: relative;

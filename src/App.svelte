@@ -60,9 +60,10 @@
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
 
-  let countrySelect = 'AFG'
-  $: selected = countryData.find((c) => {
-    return c.code === countrySelect 
+  let countrySelect = {code:'AFG', name:'Afghanistan'};
+
+  $: selected = countryData.find(c => {
+    return c.code === countrySelect.code
   });
 
   //Total key figure
@@ -72,6 +73,8 @@
   $: ageData = [];
   $: metadata = {};
   $: currentLayer = 'population';
+  $: rankingTitle = 'Population';
+
 
   function getPopulationbyCountry(iso3) {
     Papa.parse(`https://hapi-testing.innovation.humdata.org/api/themes/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=1000&offset=0`, {
@@ -112,8 +115,6 @@
         ageData = Object.values(ages);
 
         //get population per adm area
-        //let popByAdm = d3.rollup(results.data, v => d3.sum(v.filter(d => d.age_range_code === '' && d.gender_code === ''), d => d.population), d => d.admin1_name+'_'+d.admin1_code);
-
         let popByAdm = d3.rollup(
           results.data,
           v => {
@@ -200,23 +201,30 @@
   }
 
   function getCountryData(iso3) {
-    if (currentLayer === '3w')
+    countrySelect.name = d3.select('.country-select').node().selectedOptions[0].label;
+    if (currentLayer === '3w') {
       getOrgsbyCountry(iso3);
-    else
+    }
+    else {
       getPopulationbyCountry(iso3);
+    }
   }
 
   function onLayerChange(id) {
     currentLayer = id;
 
-    if (currentLayer === '3w')
-      getOrgsbyCountry(countrySelect);
-    else
-      getPopulationbyCountry(countrySelect);
+    if (currentLayer === '3w') {
+      rankingTitle = 'Number of Orgs';
+      getOrgsbyCountry(countrySelect.code);
+    }
+    else {
+      rankingTitle = 'Population';
+      getPopulationbyCountry(countrySelect.code);
+    }
   }
 
   onMount(async() => {
-    getPopulationbyCountry(countrySelect);
+    getPopulationbyCountry(countrySelect.code);
 
     //calculate available space for ranking chart
     scrollingWrapperHeight = 400;//window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
@@ -228,7 +236,7 @@
 
 <main>
   <div class='select-wrapper'>
-    <select bind:value={countrySelect} on:change={() => getCountryData(countrySelect)}>
+    <select class='country-select' bind:value={countrySelect.code} on:change={() => getCountryData(countrySelect.code)}>
       {#each countryData as {code, name}}
         {#if code!=''}
           <option value={code}>{name}</option>
@@ -267,7 +275,7 @@
     <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
       <KeyFigure title={'Total'} value={totalValue} metadata={metadata} /><!-- series={randomData(10)} -->
 
-      <h3 class='chart-title'>Ranking (Top 10)</h3>
+      <h3 class='chart-title'>Top 10 Areas by {rankingTitle}</h3>
       <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
         {#if sidebarWidth>0}
           <div class='ranking-container'>

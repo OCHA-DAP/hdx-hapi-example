@@ -56,9 +56,8 @@
 
 	  map.on('load', function() {
 	    console.log('Map loaded')
+	  	loadFeatures();
 	  });
-
-	  loadFeatures();
 	});
 
 
@@ -96,13 +95,13 @@
   }
 
 	async function loadFeatures() {
-		//to do: run script nightly to get geosjon from itos
+		//to do: run script nightly to get geojson from itos
     // const itos_url = `https://apps.itos.uga.edu/codv2api/api/v1/themes/cod-ab/locations/${LOCATION}/versions/current/geoJSON/1`;
     // const geojson_data = await get_geojson(itos_url);
     // save_geojson(currentFeatures, 'updated_data.geojson');
 
 		//for demo, used local copies of geojson
-		const response = await fetch(`itos-${LOCATION}.geojson`, {
+		const response = await fetch(`itos-${LOCATION.code}.geojson`, {
 			body: JSON.stringify()
 		});
 	  const geojson_data = await response.json();
@@ -141,7 +140,7 @@
 
 	    const title = (THEME==='3w') ? 'Number of Organizations' : THEME;
 	    const prop = e.features[0].properties;
-	    let content = `<h2>${prop.ADM1_NAME}, ${prop.ADM0_EN}</h2><span class='theme'>${title}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+	    let content = `<h2>${prop.ADM1_NAME}, ${LOCATION.name}</h2><span class='theme'>${title}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
 	    if (THEME == '3w') {
 	    	content += `<hr><h5>Top 5 Organizations</h5>`;
   			let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
@@ -173,15 +172,20 @@
 	  zoomToBounds();
 
 	  //create map legend
-	  //createMapLegend();
+	  createMapLegend();
 	}
 
 	function updateFeatures() {
+		//clear indicator layer on map
 		if (map.getSource('indicator-data')) {
 			map.removeLayer('indicator-layer');
 			map.removeSource('indicator-data');
 			loadFeatures();
 		}
+
+		//update legend
+		d3.select('.legend-body').selectAll("*").remove();
+		createMapLegend();
 	}
 
 	function zoomToBounds() {
@@ -194,13 +198,16 @@
 
 
 	function createMapLegend() {
+		const title = (THEME==='3w') ? 'Number of Organizations' : THEME;
+		d3.select('.legend-title').text(title);
+
 	  var svg = d3.select(mapLegend);
 
 		var colorLegend = legendColor()
 	    .labelFormat(d3.format('.2s'))
 	    .scale(colorScale);
 
-		d3.select(".legendQuant")
+		d3.select('.legend-body')
 		  .call(colorLegend);
 	}
 
@@ -220,15 +227,33 @@
 </script>
 
 
-<div bind:this={mapContainer} />
-<div bind:this={mapLegend}>
-	<svg>
-		<g class='legendQuant'></g>
-	</svg>
+<div class='right-content'>
+	<div bind:this={mapContainer} />
+	<div class='map-legend' bind:this={mapLegend}>
+		<h4 class='legend-title'>Map Legend</h4>
+		<svg>
+			<g class='legend-body'></g>
+		</svg>
+	</div>
 </div>
 
 <style lang='scss'>
-	div {
+	.right-content {
 		margin-bottom: 20px;
+		position: relative;
+	}
+	.map-legend {
+    background-color: rgba(255, 255, 255, 0.7);
+		bottom: 15px;
+  	font-family: 'Source Sans Pro', sans-serif;
+		font-size: 13px;
+		height: 130px;
+    padding: 15px 20px;
+		position: absolute;
+		right: 15px;
+    width: 150px;
+	}
+	.legend-title {
+		text-transform: capitalize;
 	}
 </style>
