@@ -60,7 +60,7 @@ h3 {
   font-size: 14px;
   font-weight: normal;
   line-height: 21px;
-  margin: 0px 0px 10px; 
+  margin: 0px 0px 10px;
 }
 h4 {
   margin-top: 0;
@@ -75,7 +75,7 @@ h5 {
 hr {
   border: 1px solid #E0E0E0;
   border-bottom: 0;
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 .small {
@@ -83,6 +83,18 @@ hr {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 12px;
   line-height: 14px;
+}
+
+ul.sector-list {
+  color: #888;
+  list-style-type: none;
+  padding: 0;
+  i {
+    color: #418FDE;
+    display: inline-block;
+    text-align: center;
+    width: 22px;
+  }
 }
 
 .tabs {

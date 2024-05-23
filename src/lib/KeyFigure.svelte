@@ -11,6 +11,7 @@
 	export let series = undefined;
 	export let metadata = {};
 
+
 	let dateFormat = d3.utcFormat("%b %d, %Y");
 	let keyFigInner, containerWidth, chartWidth, chartHeight;
 
@@ -45,7 +46,7 @@
 
 <style lang='scss'>
 	.key-figure {
- 		border-bottom: 1px solid #CCC; 
+ 		//border-bottom: 1px solid #CCC; 
  		padding-bottom: 15px;
  		.key-figure-inner {
     	align-items: center;
@@ -58,6 +59,13 @@
 			font-size: 48px;
 			line-height: 48px;
 			padding-right: 10px;
+		}
+	}
+	.col-2 {
+		.key-figure {
+			h3 {
+ 				min-height: 42px;
+			}
 		}
 	}
 </style>

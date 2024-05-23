@@ -9,20 +9,50 @@
 
 	let height, margin, xM, xF, y, gx, gy, gyg, xAxis, yAxis, yAxisGrid;
 
-  $: ageData = reorderArray(data);//data.sort((a, b) => b.total_population - a.total_population);
+  $: ageData = formatData(data);
   $: ageData && init()
 
-  function reorderArray(arr) {
-    if (arr.length <= 2) {
-      return arr; // No need to move if there are 2 or fewer items
-    }
-    
-    const firstTwoItems = arr.splice(0, 2); // Remove the first two items
-    return arr.concat(firstTwoItems); // Add them back at the end
+
+  function formatData(data) {
+		const allAgeRanges = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
+		const genders = [...new Set(data.map(item => item.gender))];
+
+		// Create a complete dataset with all combinations of gender and age_range
+		const completeData = genders.reduce((acc, gender) => {
+	    allAgeRanges.forEach(ageRange => {
+        const existingEntry = data.find(item => item.gender === gender && item.age_range === ageRange);
+        if (!existingEntry) {
+            acc.push({ gender, age_range: ageRange, total_population: 0 });
+        } else {
+            acc.push(existingEntry);
+        }
+	    });
+	    return acc;
+		}, []);
+
+		//sort the data by gender age_range
+		return sortByAgeRange(completeData);
+  }
+
+	function sortByAgeRange(data) {
+    return data.sort((a, b) => {
+      const getStartAge = (ageRange) => {
+        if (ageRange === '80+') {
+          return 80;
+        }
+        return parseInt(ageRange.split('-')[0]);
+      };
+
+      const ageComparison = getStartAge(a.age_range) - getStartAge(b.age_range);
+      if (ageComparison !== 0) return ageComparison;
+      return a.gender.localeCompare(b.gender);
+    });
 	}
 
   
 	function init() {
+		ageData = ageData.reverse();
+
 		margin = ({top: 10, right: 5, bottom: 20, left: 40});
 		height = ageData.length / 2 * 25 + margin.top + margin.bottom;
 
@@ -37,7 +67,7 @@
 	    .rangeRound([width / 2, width - margin.right])
 
 	  y = d3.scaleBand()
-	    .domain(ageData.map(d => d.age_range_code))
+	    .domain(ageData.map(d => d.age_range))
 	    .rangeRound([height - margin.bottom, margin.top])
 	    .padding(0.1)
 
@@ -65,6 +95,11 @@
   	d3.select(gy).call(yAxis);
   	d3.select(gyg).call(yAxisGrid);
   }
+
+  onMount(() => {
+  	d3.select(gy).call(yAxis);
+  	d3.select(gyg).call(yAxisGrid);
+  });
 </script>
 
 
@@ -78,17 +113,17 @@
 		<g>
 			{#each ageData as d, i}
 				<rect
-					fill={d.gender_code === 'm' ? '#1EBFB3' : '#F2645A'}
-					y={y(d.age_range_code)}
-					x={d.gender_code === 'm' ? xM(d.total_population) : xF(0)}
+					fill={d.gender === 'm' ? '#CCE5F9' : '#66B0EC'}
+					y={y(d.age_range)}
+					x={d.gender === 'm' ? xM(d.total_population) : xF(0)}
 					height={y.bandwidth()}
-					width={d.gender_code === 'm' ? xM(0) - xM(d.total_population) : xF(d.total_population) - xF(0)}
+					width={d.gender === 'm' ? xM(0) - xM(d.total_population) : xF(d.total_population) - xF(0)}
 				/>
       	<text 
-      		text-anchor={(d.gender_code === 'm') ? 'start' : (d.gender_code === 'f' && (xF(d.total_population) - xF(0)) < 40) ? 'start' : 'end'}
-          x={d.gender_code === 'm' ? xM(d.total_population) + 4 : xF(d.total_population) - 4}
-          y={y(d.age_range_code) + y.bandwidth() / 2}
-  				dx={(d.gender_code === 'm' && (xM(0) - xM(d.total_population)) < 40) ? '-35' : (d.gender_code === 'f' && (xF(d.total_population) - xF(0)) < 40) ? '6' : ''}
+      		text-anchor={(d.gender === 'm') ? 'start' : (d.gender === 'f' && (xF(d.total_population) - xF(0)) < 40) ? 'start' : 'end'}
+          x={d.gender === 'm' ? xM(d.total_population) + 4 : xF(d.total_population) - 4}
+          y={y(d.age_range) + y.bandwidth() / 2}
+  				dx={(d.gender === 'm' && (xM(0) - xM(d.total_population)) < 40) ? '-35' : (d.gender === 'f' && (xF(d.total_population) - xF(0)) < 40) ? '6' : ''}
           dy={'0.35em'}>
           {valueFormat(d.total_population)}
         </text>
@@ -98,14 +133,14 @@
 			{#if ageData.length>0}
 				<text
 					x={xM(0) - 10}
-					y={y(ageData[0].age_range_code) + y.bandwidth() / 2}
+					y={y(ageData[ageData.length-1].age_range) + y.bandwidth() / 2}
 					dy={'0.35em'}
 					text-anchor={'end'}>
 					{'Male'}
 				</text>
 				<text
 					x={xF(0) + 10}
-					y={y(ageData[0].age_range_code) + y.bandwidth() / 2} 
+					y={y(ageData[ageData.length-1].age_range) + y.bandwidth() / 2} 
 					dy={'0.35em'}
 					text-anchor={'start'}>
 					{'Female'}

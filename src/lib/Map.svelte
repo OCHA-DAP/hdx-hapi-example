@@ -11,7 +11,7 @@
 
 	export let center = [67, 33];
 	export let zoom = 4.8;
-	export let rankingData = [];
+	export let mapData = [];
 	export let THEME;
   export let LOCATION;
 
@@ -19,15 +19,39 @@
 	let orgsObject = {};
 	let sectorsObject = {};
 
-	let colorRange = ['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
+	let popColorRange = ['#D5EFE6','#C5E1DB','#91C4BB','#81AAA4','#6B8883'];
+	let orgsColorRange = ['#D1E3EA','#BBD1E6','#ADBCE3','#B2B3E0','#A99BC6'];
+	let hnoColorRange = ['#ffcdb2','#f2b8aa','#e4989c','#b87e8b','#925b7a'];//['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
+	let colorRange = [];
+	
 	let tooltip = d3.select('.tooltip');
 	let numFormat = d3.format(',');
 	let shortFormat = d3.format('.2s');
 
+	//map humanitarian icons to sector clusters
+  let humIcons = {
+    'Child Protection': 'humanitarianicons-Child-protection',
+    'Camp Coordination and Camp Management': 'humanitarianicons-Camp-Coordination-and-Camp-Management',
+    'Coordination and Common Services': 'humanitarianicons-Coordination',
+    'Education': 'humanitarianicons-Education',
+    'Emergency Shelter and NFI': 'humanitarianicons-Shelter',
+    'Emergency Telecommunications': 'humanitarianicons-Emergency-Telecommunications',
+    'Food Security': 'humanitarianicons-Food-Security',
+    'Gender-Based Violence': 'humanitarianicons-Gender-based-violence',
+    'Protection': 'humanitarianicons-Protection',
+    'Health': 'humanitarianicons-Health',
+    'Logistics': 'humanitarianicons-Logistics',
+    'Mine Action': 'humanitarianicons-Mine',
+    'Multi-Purpose Cash': 'humanitarianicons-Fund',
+    'Nutrition': 'humanitarianicons-Nutrition',
+    'Water Sanitation Hygiene': 'humanitarianicons-Water-Sanitation-and-Hygiene',
+  };
 
-	let data = rankingData;
-	$: if (data != rankingData) {  
-		data = rankingData;
+
+	let data = mapData;
+	$: if (data != mapData) {  
+		console.log('map data is', mapData)
+		data = mapData;
     updateFeatures();
 	}
 
@@ -76,9 +100,15 @@
       	props.ADM1_NAME = matched_data.admin1_name;
         props.indicator_value = matched_data.value;
         props.indicator_name = THEME;
-        if (THEME==='3w') {
-        	orgsObject[props.ADM1_PCODE] = matched_data.orgs;
-        	sectorsObject[props.ADM1_PCODE] = matched_data.sectors;
+        if (THEME==='orgs') {
+        	orgsObject[props.ADM1_PCODE] = matched_data.org_names;
+        	sectorsObject[props.ADM1_PCODE] = matched_data.sector_names;
+        }
+        if (THEME==='hno') {
+        	props.idp = matched_data.idp;
+        	props.refugees = matched_data.ref;
+        	props.targeted = matched_data.targeted;
+        	props.reached = matched_data.reached;
         }
       }
     });
@@ -99,6 +129,13 @@
     // const itos_url = `https://apps.itos.uga.edu/codv2api/api/v1/themes/cod-ab/locations/${LOCATION}/versions/current/geoJSON/1`;
     // const geojson_data = await get_geojson(itos_url);
     // save_geojson(currentFeatures, 'updated_data.geojson');
+
+		if (THEME === 'orgs')
+			colorRange = orgsColorRange
+		else if (THEME === 'hno')
+		  colorRange = hnoColorRange;
+		else 
+			colorRange = popColorRange;
 
 		//for demo, used local copies of geojson
 		const response = await fetch(`itos-${LOCATION.code}.geojson`, {
@@ -138,29 +175,49 @@
 	  map.on('mousemove', 'indicator-layer', function(e) {
 	    map.getCanvas().style.cursor = 'pointer';
 
-	    const title = (THEME==='3w') ? 'Number of Organizations' : THEME;
 	    const prop = e.features[0].properties;
-	    let content = `<h2>${prop.ADM1_NAME}, ${LOCATION.name}</h2><span class='theme'>${title}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-	    if (THEME == '3w') {
-	    	content += `<hr><h5>Top 5 Organizations</h5>`;
-  			let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
-  			orgs.sort((a,b) => b[1] - a[1]);
+	    let content = `<h2>${prop.ADM1_NAME}, ${LOCATION.name}</h2>`;
 
-				orgs.slice(0, 5).forEach((org, i) => {
-					content += org[0];
-					if (i<4) content += ', '
+	    if (THEME === 'orgs') {
+	    	content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+	    	content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
+	    	let sectors = sectorsObject[prop.ADM1_PCODE].sort();
+
+	    	content += `<ul class="sector-list">`;
+				sectors.forEach((sector, i) => {
+					content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
 				});
+				content += `</ul>`;
 
-	    	content += `<br><br><h5>Top 5 Sectors</h5>`;
-  			let sectors = Object.entries(sectorsObject[prop.ADM1_PCODE]);
-  			sectors.sort((a,b) => b[1] - a[1]);
+	    	// content += `<hr><h5>Top 5 Organizations</h5>`;
+  			// let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
+  			// orgs.sort((a,b) => b[1] - a[1]);
 
-				sectors.slice(0, 5).forEach((sector, i) => {
-					content += sector[0];
-					if (i<4) content += ', '
-				});
+				// orgs.slice(0, 5).forEach((org, i) => {
+				// 	content += org[0];
+				// 	if (i<4) content += ', '
+				// });
+
+	    	// content += `<br><br><h5>Top 5 Sectors</h5>`;
+  			// let sectors = Object.entries(sectorsObject[prop.ADM1_PCODE]);
+  			// sectors.sort((a,b) => b[1] - a[1]);
+
+				// sectors.slice(0, 5).forEach((sector, i) => {
+				// 	content += sector[0];
+				// 	if (i<4) content += ', '
+				// });
+	    }
+	    else if (THEME === 'hno') {
+	    	content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+
+	    	content += `<hr><ul class="sector-list">`;
+	    	content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
+	    	content += `<li>Interally Displaced People: ${numFormat(prop.idp)}</li>`;
+	    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
+	    	content += `</ul>`;
 	    }
 	    else {
+	    	content += `<span class='theme'>${THEME}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
 	    }
 
 	    tooltip.setHTML(content);
@@ -192,14 +249,16 @@
 		//zoom map to bounds
 		if (currentFeatures !== undefined) {
 			let bbox = turf.bbox(currentFeatures);
-			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 50, left: 50}, duration: 500});
+			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 150, left: 50}, duration: 500});
 		}
 	}
 
 
 	function createMapLegend() {
-		const title = (THEME==='3w') ? 'Number of Organizations' : THEME;
-		d3.select('.legend-title').text(title);
+		let legendTitle = THEME;
+		if (THEME==='orgs') legendTitle = 'Number of Organizations';
+		if (THEME==='hno') legendTitle = 'Number of People in Need';
+		d3.select('.legend-title').text(legendTitle);
 
 	  var svg = d3.select(mapLegend);
 
@@ -254,6 +313,9 @@
     width: 150px;
 	}
 	.legend-title {
-		text-transform: capitalize;
+		line-height: 16px;
+	}
+	ul {
+		list-style-type: none;
 	}
 </style>
