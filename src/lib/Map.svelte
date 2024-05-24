@@ -212,7 +212,7 @@
 
 	    	content += `<hr><ul class="sector-list">`;
 	    	content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
-	    	content += `<li>Interally Displaced People: ${numFormat(prop.idp)}</li>`;
+	    	content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
 	    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
 	    	content += `</ul>`;
 	    }

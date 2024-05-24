@@ -51,7 +51,7 @@
  		.key-figure-inner {
     	align-items: center;
  			display: flex;
-    	margin: 25px 0 15px;
+    	margin: 15px 0;
  		}
 		.num {
 			display: block;

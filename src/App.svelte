@@ -309,9 +309,11 @@
         if (population_group === '*' && disabled_marker === '*' && sector_code === '*') {
           if (population_status === 'INN') {
             pinAdm1Object[admin1_code].populationInnAll += population;
-          } else if (population_status === 'TGT') {
+          } 
+          else if (population_status === 'TGT') {
             pinAdm1Object[admin1_code].populationTgtAll += population;
-          } else if (population_status === 'REA') {
+          } 
+          else if (population_status === 'REA') {
             pinAdm1Object[admin1_code].populationReaAll += population;
           }
         }
@@ -319,13 +321,13 @@
         if (population_status === 'INN' && disabled_marker === '*' && sector_code === '*') {
           if (population_group === 'IDP') {
             pinAdm1Object[admin1_code].populationInnIdp += population;
-          } else if (population_group === 'REF') {
+          } 
+          else if (population_group === 'REF') {
             pinAdm1Object[admin1_code].populationInnRef += population;
           }
         }
       }
     });
-    console.log('-------',pinAdm1Object)
 
     //convert to array of objects
     const pinAdm1 = {};
@@ -341,7 +343,6 @@
       };
     }
     hnoData.map = Object.values(pinAdm1);
-    console.log(pinAdm1Object)
 
     //get pin key figures
     const idpPin = data.filter(row => row.sector_code === '*' && row.disabled_marker === '*' && row.population_group === 'IDP' && row.population_status === 'INN');
@@ -378,67 +379,8 @@
     }
     
     hnoData.chart = sectorPinArray;
-
-    // // Iterate over each row in the CSV
-    // data.forEach(row => {
-    //   if (row['gender'] === '*' && row['age_range'] === '*' && row['disabled_marker'] === '*' && row['sector_code'] === '*') {
-    //     const admin1Code = row['admin1_code'];
-    //     const admin1Name = row['admin1_name'];
-    //     const status = row['population_status'];
-    //     const group = row['population_group'];
-    //     const population = +row['population'];
-
-    //     //init admin1 if doesnt exist
-    //     if (!adminHno[admin1Code]) {
-    //       adminHno[admin1Code] = {
-    //         name: admin1Name,
-    //         population: {}
-    //       };
-    //     }
-
-    //     //init status if doesnt exist
-    //     if (!adminHno[admin1Code].population[status]) {
-    //       adminHno[admin1Code].population[status] = {};
-    //     }
-
-    //     //sum pop
-    //     if (adminHno[admin1Code].population[status][group]) {
-    //       adminHno[admin1Code].population[status][group] += population;
-    //     } else {
-    //       adminHno[admin1Code].population[status][group] = population;
-    //     }
-    //   }
-    // });
-
-    // console.log('adminHno',adminHno)
-    // const pinArray = [];
-    // for (const admin in adminHno) {
-    //   pinArray.push({
-    //     admin1_code: admin,
-    //     admin1_name: adminHno[admin].name,
-    //     value: adminHno[admin].population.inneed.total,
-    //     idps: adminHno[admin].population.inneed.idps,
-    //     returnees: adminHno[admin].population.inneed.returnees,
-    //     refugees: adminHno[admin].population.inneed.refugees,
-    //   });
-    // }
-
-    // hnoData.map = pinArray;
-    // hnoData.totalValue = d3.sum(pinArray, d => d.value);
-    // console.log('pin array', pinArray)
-    // console.log('pin total', hnoData.totalValue)
   }
 
-  function getPinBySector(iso3) {
-    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=%2A&age_range=ALL&disabled_marker=%2A&population_group=%2A&population_status=INN&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`
-    Papa.parse(hnoURL, {
-      header: true,
-      download: true,
-      complete: function(results) {
-
-      }
-    });
-  }
 
   function createKeyFigures(iso3) {
     // let keyFigureData = [
@@ -576,7 +518,7 @@
 
   <div class='tabs'>
     {#each tabs as {tabName, id}, i}
-      <div class='tab' class:active={id === currentLayer} on:click={() => onLayerChange(id)}><a href='#' {tabName}>{tabName}</a></div>
+      <div class='tab' class:active={id === currentLayer} on:click={() => onLayerChange(id)}><a title={tabName}>{tabName}</a></div>
     {/each}
   </div>
 
