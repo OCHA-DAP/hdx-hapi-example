@@ -53,6 +53,7 @@
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
+    {tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
@@ -66,6 +67,8 @@
   $: selected = countryData.find(c => {
     return c.code === countrySelect.code
   });
+
+  $: loadStatusMsg = 'Loading data...';
 
   //Total key figure
   $: totalValue = 0;
@@ -85,7 +88,8 @@
     const sources = [
       `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
       `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      `${base_url}affected-people/humanitarian-needs?gender=%2A&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+      `${base_url}affected-people/humanitarian-needs?gender=%2A&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csvlimit=10000&offset=0&${app_indentifier}`
     ];
     console.log(sources)
 
@@ -108,18 +112,26 @@
       .then(allData => {
         console.log('All data:', allData);
 
-        countrySelect.name = allData[0][0].location_name;
 
-        //format data
-        formatPopulationData(allData[0]);
-        formatOrgsData(allData[1]);
-        formatHnoData(allData[2]);
+        if (allData[0].length<=0 && allData[1].length<=0 && allData[2].length<=0) {
+          loadStatusMsg = 'No data to display';
+          console.log('no data')
+        }
+        else {
+          countrySelect.name = allData[0][0].location_name;
+          
+          //format data
+          formatPopulationData(allData[0]);
+          formatOrgsData(allData[1]);
+          formatHNOData(allData[2]);
+          //formatIPCData(allData[3]);
 
-        //create keyfigures
-        createKeyFigures(iso3);
+          //create keyfigures
+          createKeyFigures(iso3);
 
-        //init pop layer
-        onLayerChange(currentLayer);
+          //init pop layer
+          onLayerChange(currentLayer);
+        }
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -270,8 +282,8 @@
   /***************************
    * Humanitarian needs data
    ***************************/
-  function formatHnoData(data) {
-    console.log('formatHnoData', data);
+  function formatHNOData(data) {
+    console.log('formatHNOData', data);
 
     //format pin by adm1 for map
     // const pinAdm1 = data.filter(row => row.sector_code === '*' && row.disabled_marker === '*' && row.population_group === '*' && row.population_status === 'INN');
@@ -382,6 +394,14 @@
   }
 
 
+  /***************************
+   * Food insecurity data
+   ***************************/
+  function formatIPCData(data) {
+    console.log('formatIPCData', data);
+  }
+
+
   function createKeyFigures(iso3) {
     // let keyFigureData = [
     //   {title: 'Key figure', value: '1,200,000', series: randomData(10)},
@@ -405,7 +425,7 @@
         updateKeyFigureData({title: 'People in Need', value: +hno[0].population}, hno[0].resource_hdx_id, 1);
 
         const rea = results.data.filter(row => row.population_group === '*' && row.population_status === 'REA');
-        updateKeyFigureData({title: 'People Reached', value: +rea[0].population}, rea[0].resource_hdx_id, 2);
+        if (rea.length>0) updateKeyFigureData({title: 'People Reached', value: +rea[0].population}, rea[0].resource_hdx_id, 2);
       }
     });
 
@@ -415,7 +435,7 @@
       header: true,
       download: true,
       complete: function(results) {
-        const funding = results.data.filter(row => row.appeal_name === 'Afghanistan Humanitarian Response Plan 2024');
+        const funding = results.data.filter(row => row.appeal_code === `H${iso3}24`);
         const requirement = +funding[0].requirements_usd;
         const fundedPercent = funding[0].funding_pct / 100;
         const pieData = [1-fundedPercent, fundedPercent];
@@ -506,11 +526,15 @@
   <h2 class='header'>Header</h2>
   <div class='grid-container key-figure-container'>
     {#if keyFigureData.length>0}
-    {#each keyFigureData as keyFigure}
-      <div class='col-2'>
-        <KeyFigure {...keyFigure} />
-      </div>
-    {/each}
+      {#each keyFigureData as keyFigure}
+        {#if keyFigure!==undefined}
+          <div class='col-2'>
+            <KeyFigure {...keyFigure} />
+          </div>
+        {/if}
+      {/each}
+    {:else}
+      <div class='col-12 center-text'>{loadStatusMsg}</div>
     {/if}
   </div>
 
