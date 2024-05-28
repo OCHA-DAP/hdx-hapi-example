@@ -53,7 +53,7 @@
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
-    {tabName: 'Food Insecurity', id: 'ipc'},
+    //{tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
@@ -119,7 +119,7 @@
         }
         else {
           countrySelect.name = allData[0][0].location_name;
-          
+
           //format data
           formatPopulationData(allData[0]);
           formatOrgsData(allData[1]);
@@ -523,7 +523,7 @@
   </div> 
 
   
-  <h2 class='header'>Header</h2>
+  <h2 class='header'>Country Overview</h2>
   <div class='grid-container key-figure-container'>
     {#if keyFigureData.length>0}
       {#each keyFigureData as keyFigure}
@@ -538,7 +538,7 @@
     {/if}
   </div>
 
-  <h2 class='header'>Header</h2>
+  <h2 class='header'>Country Details</h2>
 
   <div class='tabs'>
     {#each tabs as {tabName, id}, i}
