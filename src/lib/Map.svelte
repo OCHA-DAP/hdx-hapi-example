@@ -22,6 +22,7 @@
 	let popColorRange = ['#D5EFE6','#C5E1DB','#91C4BB','#81AAA4','#6B8883'];
 	let orgsColorRange = ['#D1E3EA','#BBD1E6','#ADBCE3','#B2B3E0','#A99BC6'];
 	let hnoColorRange = ['#ffcdb2','#f2b8aa','#e4989c','#b87e8b','#925b7a'];//['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
+	let ipcColorRange = ['#F6D2AA', '#F2BB7F', '#EEA555', '#EA8E2A', '#E67800'];
 	let colorRange = [];
 	
 	let tooltip = d3.select('.tooltip');
@@ -110,6 +111,9 @@
         	props.targeted = matched_data.targeted;
         	props.reached = matched_data.reached;
         }
+        if (THEME==='ipc') {
+        	props.referencePeriod = matched_data.referencePeriod;
+        }
       }
     });
     return geojson;
@@ -134,6 +138,8 @@
 			colorRange = orgsColorRange
 		else if (THEME === 'hno')
 		  colorRange = hnoColorRange;
+		else if (THEME === 'ipc')
+		  colorRange = ipcColorRange;
 		else 
 			colorRange = popColorRange;
 
@@ -178,7 +184,11 @@
 	    const prop = e.features[0].properties;
 	    let content = `<h2>${prop.ADM1_NAME}, ${LOCATION.name}</h2>`;
 
-	    if (THEME === 'orgs') {
+
+	    if (THEME === 'population') {
+	    	content += `<span class='theme'>Population:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+	    }
+	    else if (THEME === 'orgs') {
 	    	content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
 	    	content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
 	    	let sectors = sectorsObject[prop.ADM1_PCODE].sort();
@@ -215,6 +225,9 @@
 	    	content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
 	    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
 	    	content += `</ul>`;
+	    }
+	    else if (THEME === 'ipc') {
+	    	content += `<span class='theme'>Population in IPC Phase 3+:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
 	    }
 	    else {
 	    	content += `<span class='theme'>${THEME}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
@@ -256,8 +269,10 @@
 
 	function createMapLegend() {
 		let legendTitle = THEME;
+		if (THEME==='population') legendTitle = 'Population';
 		if (THEME==='orgs') legendTitle = 'Number of Organizations';
 		if (THEME==='hno') legendTitle = 'Number of People in Need';
+		if (THEME==='ipc') legendTitle = 'Population in IPC Phase 3+';
 		d3.select('.legend-title').text(legendTitle);
 
 	  var svg = d3.select(mapLegend);
@@ -302,7 +317,7 @@
 		position: relative;
 	}
 	.map-legend {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.8);
 		bottom: 15px;
   	font-family: 'Source Sans Pro', sans-serif;
 		font-size: 13px;

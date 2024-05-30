@@ -22,8 +22,6 @@
 	$: chartData && init()
 
 	function init() {
-
-	console.log('ranking data'. chartData)
 		chartWidth = width - nameWidth - labelWidth;
 		height = chartData.length * (barHeight+barPadding);
 

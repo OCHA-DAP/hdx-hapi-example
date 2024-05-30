@@ -6,7 +6,7 @@
   import Bar from './lib/Charts/Bar.svelte'
   import Map from './lib/Map.svelte'
   import Pyramid from './lib/Charts/Pyramid.svelte'
-  import Population from './lib/Population.svelte'
+  import Line from './lib/Charts/Line.svelte'
 
   const randomData = (seriesCount) => {
     return d3.range(seriesCount).map(function (d) {
@@ -21,14 +21,14 @@
   const base_url = 'https://hapiapi.humdata.org/api/v1/';
   const app_indentifier = 'app_identifier=aGFwaS1kYXNoYm9hcmQ6ZXJpa2Eud2VpQHVuLm9yZw==';
 
-  let countryData = [];
-  Papa.parse(`https://hapi-testing.innovation.humdata.org/api/location?output_format=csv&limit=1000&offset=0`, {
-    header: true,
-    download: true,
-    complete: function(results) {
-      countryData = results.data;
-    }
-  })
+  // let countryData = [];
+  // Papa.parse(`${base_url}location?output_format=csv&limit=1000&offset=0`, {
+  //   header: true,
+  //   download: true,
+  //   complete: function(results) {
+  //     countryData = results.data;
+  //   }
+  // })
 
   // const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
   // let admin1Data = [];
@@ -53,7 +53,7 @@
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
-    //{tabName: 'Food Insecurity', id: 'ipc'},
+    {tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
@@ -61,12 +61,13 @@
   let popData = {};
   let orgData = {};
   let hnoData = {};
+  let ipcData = {};
 
-  let countrySelect = {code:'AFG', name:'Afghanistan'};
+  let countrySelect = {code:'BFA', name:'Burkina Faso'};
 
-  $: selected = countryData.find(c => {
-    return c.code === countrySelect.code
-  });
+  // $: selected = countryData.find(c => {
+  //   return c.code === countrySelect.code
+  // });
 
   $: loadStatusMsg = 'Loading data...';
 
@@ -88,8 +89,8 @@
     const sources = [
       `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
       `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      `${base_url}affected-people/humanitarian-needs?gender=%2A&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csvlimit=10000&offset=0&${app_indentifier}`
+      `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
     ];
     console.log(sources)
 
@@ -124,7 +125,7 @@
           formatPopulationData(allData[0]);
           formatOrgsData(allData[1]);
           formatHNOData(allData[2]);
-          //formatIPCData(allData[3]);
+          formatIPCData(allData[3]);
 
           //create keyfigures
           createKeyFigures(iso3);
@@ -149,7 +150,7 @@
     }
 
     //format data for pop pyramid chart
-    const filteredData = data.filter(row => row.gender !== '*' && row.age_range !== '*' && row.gender !== undefined && row.age_range !== undefined);
+    const filteredData = data.filter(row => row.gender !== 'all' && row.age_range !== 'all' && row.gender !== undefined && row.age_range !== undefined);
     const ages = filteredData.reduce((acc, { gender, age_range, population }) => {
       //create unique key for each gender/age combo
       const key = `${gender}_${age_range}`;
@@ -174,7 +175,7 @@
     let popByAdm = d3.rollup(
       data,
       v => {
-        const aggregatedData = v.filter(d => d.age_range === '*' && d.gender === '*');
+        const aggregatedData = v.filter(d => d.age_range === 'all' && d.gender === 'all');
         return {
           admin1_code: aggregatedData[0] ? aggregatedData[0].admin1_code : null,
           population: d3.sum(aggregatedData, d => d.population)
@@ -318,7 +319,7 @@
         }
 
         // Check conditions and accumulate populations
-        if (population_group === '*' && disabled_marker === '*' && sector_code === '*') {
+        if (population_group === 'all' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
           if (population_status === 'INN') {
             pinAdm1Object[admin1_code].populationInnAll += population;
           } 
@@ -330,7 +331,7 @@
           }
         }
 
-        if (population_status === 'INN' && disabled_marker === '*' && sector_code === '*') {
+        if (population_status === 'INN' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
           if (population_group === 'IDP') {
             pinAdm1Object[admin1_code].populationInnIdp += population;
           } 
@@ -357,16 +358,16 @@
     hnoData.map = Object.values(pinAdm1);
 
     //get pin key figures
-    const idpPin = data.filter(row => row.sector_code === '*' && row.disabled_marker === '*' && row.population_group === 'IDP' && row.population_status === 'INN');
+    const idpPin = data.filter(row => row.sector_code === 'Intersectoral' && row.disabled_marker === 'all' && row.population_group === 'IDP' && row.population_status === 'INN');
     hnoData.totalValue1 = d3.sum(idpPin, d => d.population);
 
-    const refPin = data.filter(row => row.sector_code === '*' && row.disabled_marker === '*' && row.population_group === 'REF' && row.population_status === 'INN');
+    const refPin = data.filter(row => row.sector_code === 'Intersectoral' && row.disabled_marker === 'all' && row.population_group === 'REF' && row.population_status === 'INN');
     hnoData.totalValue2 = d3.sum(refPin, d => d.population);
 
     //get pin by sector for bar chart
     const pinSector = {};
     data.forEach(d => {
-      if (d.location_code === 'AFG' && d.population_status === 'INN' && d.sector_code !== '*' && d.disabled_marker === '*') {
+      if (d.location_code === 'AFG' && d.population_status === 'INN' && d.sector_code !== 'Intersectoral' && d.disabled_marker === 'all') {
         const sector = d.sector_name;
         const population = +d.population;
         
@@ -399,6 +400,79 @@
    ***************************/
   function formatIPCData(data) {
     console.log('formatIPCData', data);
+    // Initialize a dictionary to store the data by admin1_code
+    const admIPC = {};
+
+    // Iterate over each record in the data
+    data.forEach(row => {
+        const admin1Code = row.admin1_code;
+        const admin1Name = row.admin1_name;
+        const ipcPhase = row.ipc_phase;
+        const populationInPhase = row.population_in_phase;
+        const referencePeriodStart = row.reference_period_start;
+
+        // Check if the admin1_code is already in the dictionary
+        if (!admIPC[admin1Code]) {
+          admIPC[admin1Code] = {
+            admin1Name: admin1Name,
+            ipcPhase: ipcPhase,
+            populationInPhase: populationInPhase,
+            referencePeriod: referencePeriodStart
+          };
+        } 
+        else {
+          // Update if the current date is more recent than the stored one
+          if (admIPC[admin1Code].referencePeriod < referencePeriodStart) {
+            admIPC[admin1Code] = {
+              admin1Name: admin1Name,
+              ipcPhase: ipcPhase,
+              populationInPhase: populationInPhase,
+              referencePeriod: referencePeriodStart
+            };
+          }
+        }
+    });
+
+    //convert to array
+    const admIPCArray = [];
+    Object.keys(admIPC).forEach(admin1Code => {
+      if (admin1Code !== 'undefined') {
+        admIPCArray.push({
+          admin1_code: admin1Code,
+          admin1_name: admIPC[admin1Code].admin1Name,
+          ipcPhase: admIPC[admin1Code].ipcPhase,
+          value: +admIPC[admin1Code].populationInPhase,
+          referencePeriod: admIPC[admin1Code].referencePeriod
+        });
+      }
+    });
+    ipcData.map = admIPCArray;
+
+    //format for trend chart
+    // Filter data for ipc_phase 3 or higher and aggregate by reference_period_start
+    const aggregatedData = data.reduce((acc, curr) => {
+      const phase = parseInt(curr.ipc_phase);
+      const population = parseInt(curr.population_in_phase);
+
+      if (phase >= 3 && !isNaN(population)) {
+        const date = +new Date(curr.reference_period_start);
+        console.log(date)
+        if (acc[date]) {
+          acc[date] += population;
+        } else {
+          acc[date] = population;
+        }
+      }
+      return acc;
+    }, {});
+
+    // Convert the aggregation object into an array of { period, population }
+    ipcData.chart = Object.keys(aggregatedData).map(date => {
+      return { date, value: aggregatedData[date] };
+    });
+
+
+    console.log('trend data', ipcData.chart)
   }
 
 
@@ -413,18 +487,18 @@
     // ];
 
     //hno data
-    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=%2A&age_range=ALL&disabled_marker=%2A&sector_name=ALL&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`
     Papa.parse(hnoURL, {
       header: true,
       download: true,
       complete: function(results) {
-        const pop = results.data.filter(row => row.population_group === '*' && row.population_status === 'POP');
+        const pop = results.data.filter(row => row.population_group === 'all' && row.population_status === 'POP');
         updateKeyFigureData({title: 'Population', value: +pop[0].population}, pop[0].resource_hdx_id, 0);
 
-        const hno = results.data.filter(row => row.population_group === '*' && row.population_status === 'INN');
+        const hno = results.data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
         updateKeyFigureData({title: 'People in Need', value: +hno[0].population}, hno[0].resource_hdx_id, 1);
 
-        const rea = results.data.filter(row => row.population_group === '*' && row.population_status === 'REA');
+        const rea = results.data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
         if (rea.length>0) updateKeyFigureData({title: 'People Reached', value: +rea[0].population}, rea[0].resource_hdx_id, 2);
       }
     });
@@ -491,6 +565,9 @@
     else if (currentLayer === 'hno') {
       currentData = hnoData;
     }
+    else if (currentLayer === 'ipc') {
+      currentData = ipcData;
+    }
     else {
       currentData = popData;
     }
@@ -509,16 +586,42 @@
   });
 </script>
 
-<Population />
 
 <main>
   <div class='select-wrapper'>
-    <select class='country-select' bind:value={countrySelect.code} on:change={() => getCountryData(countrySelect.code)}>
+    <!-- <select class='country-select' bind:value={countrySelect.code} on:change={() => getCountryData(countrySelect.code)}>
       {#each countryData as {code, name}}
         {#if code!=''}
           <option value={code}>{name}</option>
         {/if}
       {/each}
+    </select> -->
+    <select class="country-select" bind:value={countrySelect.code} on:change={() => getCountryData(countrySelect.code)}>
+      <option value="AFG">Afghanistan</option>
+      <option value="BFA">Burkina Faso</option>
+      <option value="CMR">Cameroon</option>
+      <option value="CAF">Central African Republic</option>
+      <option value="TCD">Chad</option>
+      <option value="COL">Colombia</option>
+      <option value="COD">Democratic Republic of the Congo</option>
+      <option value="SLV">El Salvador</option>
+      <option value="ETH">Ethiopia</option>
+      <option value="GTM">Guatemala</option>
+      <option value="HTI">Haiti</option>
+      <option value="HND">Honduras</option>
+      <option value="MLI">Mali</option>
+      <option value="MOZ">Mozambique</option>
+      <option value="MMR">Myanmar</option>
+      <option value="NER">Niger</option>
+      <option value="NGA">Nigeria</option>
+      <option value="PSE">State of Palestine</option>
+      <option value="SOM">Somalia</option>
+      <option value="SSD">South Sudan</option>
+      <option value="SDN">Sudan</option>
+      <option value="SYR">Syrian Arab Republic</option>
+      <option value="UKR">Ukraine</option>
+      <option value="VEN">Venezuela (Bolivarian Republic of)</option>
+      <option value="YEM">Yemen</option>
     </select>
   </div> 
 
@@ -562,7 +665,9 @@
           </div>
         </div>
         <hr>
-      {:else}<!-- currentLayer==='population' -->
+      {:else}
+
+      <!-- currentLayer==='population' -->
         <!-- <div class='grid-container key-figure-container'>
           <div class='col-6'>
             <KeyFigure title={'Total'} value={totalValue} metadata={metadata} />
@@ -585,6 +690,9 @@
             <div class='ranking-container'>
               <Bar data={chartData} width={sidebarWidth} />
             </div>
+          {:else if currentLayer==='ipc'}
+            <h3 class='chart-title'>Population in IPC Phase 3+ Over Time</h3>
+            <Line data={chartData} width={sidebarWidth} height={200} /><!--width={containerWidth-chartWidth} height={chartHeight - 5}-->
           {:else}<!-- currentLayer==='population' -->
             <Pyramid data={ageData} title={'Population Demographics'} width={sidebarWidth} />
           {/if}

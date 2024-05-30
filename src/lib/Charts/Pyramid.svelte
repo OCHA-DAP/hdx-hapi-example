@@ -61,7 +61,7 @@
 	    .domain([0, d3.max(ageData, d => d.total_population)])
 	    .rangeRound([width / 2, margin.left])
 
-	  //scake for female
+	  //scale for female
 	  xF = d3.scaleLinear()
 	    .domain(xM.domain())
 	    .rangeRound([width / 2, width - margin.right])
