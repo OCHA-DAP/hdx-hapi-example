@@ -53,7 +53,7 @@
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
-    {tabName: 'Food Insecurity', id: 'ipc'},
+    //{tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
   let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
@@ -63,7 +63,7 @@
   let hnoData = {};
   let ipcData = {};
 
-  let countrySelect = {code:'BFA', name:'Burkina Faso'};
+  let countrySelect = {code:'AFG', name:'Afghanistan'};
 
   // $: selected = countryData.find(c => {
   //   return c.code === countrySelect.code
@@ -89,8 +89,9 @@
     const sources = [
       `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
       `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=10000&${app_indentifier}`,
       `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      `${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+      //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
     ];
     console.log(sources)
 
@@ -123,9 +124,9 @@
 
           //format data
           formatPopulationData(allData[0]);
-          formatOrgsData(allData[1]);
-          formatHNOData(allData[2]);
-          formatIPCData(allData[3]);
+          formatOrgsData(allData[1].concat(allData[2]));
+          formatHNOData(allData[3]);
+          //formatIPCData(allData[4]);
 
           //create keyfigures
           createKeyFigures(iso3);
@@ -235,6 +236,8 @@
         admOrgs[admin1Code].sector_names.add(sectorName);
       }
     });
+
+    console.log('admOrgs',admOrgs)
 
     //convert to array of objects
     const admOrgsArray = {};
