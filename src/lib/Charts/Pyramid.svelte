@@ -49,6 +49,10 @@
     });
 	}
 
+	function formatVal(val) {
+		return (val>0) ? valueFormat(val) : '';
+	}
+
   
 	function init() {
 		ageData = ageData.reverse();
@@ -125,7 +129,7 @@
           y={y(d.age_range) + y.bandwidth() / 2}
   				dx={(d.gender === 'm' && (xM(0) - xM(d.total_population)) < 40) ? '-35' : (d.gender === 'f' && (xF(d.total_population) - xF(0)) < 40) ? '6' : ''}
           dy={'0.35em'}>
-          {valueFormat(d.total_population)}
+          {formatVal(d.total_population)}
         </text>
 			{/each}
 		</g>

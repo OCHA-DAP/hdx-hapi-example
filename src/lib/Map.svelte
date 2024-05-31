@@ -32,13 +32,14 @@
 	//map humanitarian icons to sector clusters
   let humIcons = {
     'Child Protection': 'humanitarianicons-Child-protection',
-    'Camp Coordination and Camp Management': 'humanitarianicons-Camp-Coordination-and-Camp-Management',
+    'Camp Coordination / Management': 'humanitarianicons-Camp-Coordination-and-Camp-Management',
     'Coordination and Common Services': 'humanitarianicons-Coordination',
+    'Early Recovery': 'humanitarianicons-Early-Recovery',
     'Education': 'humanitarianicons-Education',
     'Emergency Shelter and NFI': 'humanitarianicons-Shelter',
     'Emergency Telecommunications': 'humanitarianicons-Emergency-Telecommunications',
     'Food Security': 'humanitarianicons-Food-Security',
-    'Gender-Based Violence': 'humanitarianicons-Gender-based-violence',
+    'Gender Based Violence': 'humanitarianicons-Gender-based-violence',
     'Protection': 'humanitarianicons-Protection',
     'Health': 'humanitarianicons-Health',
     'Logistics': 'humanitarianicons-Logistics',
@@ -92,6 +93,17 @@
     return response.json();
   }
 
+  function findADM(props) {
+	  const keysToFind = ['ADM1_EN', 'ADM1_ES', 'ADM1_FR', 'ADM1_PT'];
+
+	  for (let key of keysToFind) {
+	    if (props.hasOwnProperty(key)) {
+	      return props[key];
+	    }
+	  }
+	  return null;
+	}
+
   function match_geojson(geojson, indicator_data) {
   	console.log('indicator_data',indicator_data)
     geojson.features.forEach(feature => {
@@ -114,6 +126,11 @@
         if (THEME==='ipc') {
         	props.referencePeriod = matched_data.referencePeriod;
         }
+      }
+      else {
+      	props.ADM1_NAME = findADM(props);
+        props.indicator_value = 'NA';
+        props.indicator_name = THEME;
       }
     });
     return geojson;
@@ -157,7 +174,7 @@
 
 	  currentFeatures.features.forEach(function(f) {
 	    let prop = f.properties;
-	    prop['color'] = colorScale(+prop.indicator_value)
+	    prop['color'] = (prop.indicator_value==='NA') ? '#CCC' : colorScale(+prop.indicator_value)
 	  });
 
 	  map.addSource('indicator-data', {
@@ -189,33 +206,36 @@
 	    	content += `<span class='theme'>Population:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
 	    }
 	    else if (THEME === 'orgs') {
-	    	content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-	    	content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
-	    	let sectors = sectorsObject[prop.ADM1_PCODE].sort();
+	    	let val = (prop.indicator_value==='NA') ? 'No data' : shortFormat(prop.indicator_value);
+	    	content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${val}</div>`;
+	    	if (sectorsObject[prop.ADM1_PCODE]) {
+	    		content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
+		    	let sectors = sectorsObject[prop.ADM1_PCODE].sort();
 
-	    	content += `<ul class="sector-list">`;
-				sectors.forEach((sector, i) => {
-					content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
-				});
-				content += `</ul>`;
+		    	content += `<ul class="sector-list">`;
+					sectors.forEach((sector, i) => {
+						content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
+					});
+					content += `</ul>`;
 
-	    	// content += `<hr><h5>Top 5 Organizations</h5>`;
-  			// let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
-  			// orgs.sort((a,b) => b[1] - a[1]);
+		    	// content += `<hr><h5>Top 5 Organizations</h5>`;
+	  			// let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
+	  			// orgs.sort((a,b) => b[1] - a[1]);
 
-				// orgs.slice(0, 5).forEach((org, i) => {
-				// 	content += org[0];
-				// 	if (i<4) content += ', '
-				// });
+					// orgs.slice(0, 5).forEach((org, i) => {
+					// 	content += org[0];
+					// 	if (i<4) content += ', '
+					// });
 
-	    	// content += `<br><br><h5>Top 5 Sectors</h5>`;
-  			// let sectors = Object.entries(sectorsObject[prop.ADM1_PCODE]);
-  			// sectors.sort((a,b) => b[1] - a[1]);
+		    	// content += `<br><br><h5>Top 5 Sectors</h5>`;
+	  			// let sectors = Object.entries(sectorsObject[prop.ADM1_PCODE]);
+	  			// sectors.sort((a,b) => b[1] - a[1]);
 
-				// sectors.slice(0, 5).forEach((sector, i) => {
-				// 	content += sector[0];
-				// 	if (i<4) content += ', '
-				// });
+					// sectors.slice(0, 5).forEach((sector, i) => {
+					// 	content += sector[0];
+					// 	if (i<4) content += ', '
+					// });
+				}
 	    }
 	    else if (THEME === 'hno') {
 	    	content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
@@ -262,7 +282,7 @@
 		//zoom map to bounds
 		if (currentFeatures !== undefined) {
 			let bbox = turf.bbox(currentFeatures);
-			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 150, left: 50}, duration: 500});
+			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 125, left: 50}, duration: 500});
 		}
 	}
 

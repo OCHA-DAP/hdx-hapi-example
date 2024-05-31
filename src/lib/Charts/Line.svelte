@@ -5,9 +5,10 @@
 	export let height = 50;
 	export let width = 75;
 
+	let gy;
+	
 	const xAccessor = (d) => d.date;
 	const yAccessor = (d) => d.value;
-
 
 	let xScale  = d3.scaleTime()
     .domain(d3.extent(data, xAccessor))
@@ -23,11 +24,17 @@
 	  .x((d) => xScale(xAccessor(d)))
 		.y((d) => yScale(yAccessor(d)))
 	  .curve(d3.curveBasis);
+
+	onMount(() => {
+    svg.append("g")
+      .call(d3.axisLeft(y));
+	});
 </script>
 
 <div class='line'>
 	<svg viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}>
 		<path d={line(data)} />
+		<g bind:this={gy} />
 	</svg>
 </div>
 

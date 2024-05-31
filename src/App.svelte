@@ -30,33 +30,14 @@
   //   }
   // })
 
-  // const url = 'https://stage.hapi-humdata-org.ahconu.org/api/admin1?location_code=afg&output_format=json&offset=0';
-  // let admin1Data = [];
-
-  //dummy pie data
-  // let requirement = 90;
-  // let funded = 15;
-  // let fundedPercent = funded/requirement;
-  // let pieData = [1-fundedPercent, fundedPercent];
-
-  //dummy key figures
-  //let keyFigureData = [
-    // {title: 'Key figure', value: '1,200,000', series: randomData(10)},
-    // {title: 'Key figure', value: '300000', series: randomData(10)},
-    // {title: 'Key figure', value: '1100000000', valueFormat:'$.2s'},
-    // {title: 'Key figure', value: '1100', series: randomData(5), seriesType: 'column'},
-    // {title: 'Key figure', value: '500'},
-    // {title: 'Key figure', value: '500', series: pieData, seriesType: 'pie'},
-  //];
-
   let tabs = [
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
-    //{tabName: 'Food Insecurity', id: 'ipc'},
+    {tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
-  let sidebarWidth, scrollingWrapperHeight, scrollingWrapper;
+  let sidebarWidth, scrollingWrapper;
 
   let popData = {};
   let orgData = {};
@@ -69,7 +50,8 @@
   //   return c.code === countrySelect.code
   // });
 
-  $: loadStatusMsg = 'Loading data...';
+  $: overviewLoadMsg = 'Loading data...';
+  $: detailsLoadMsg = 'Loading data...';
 
   //Total key figure
   $: totalValue = 0;
@@ -80,11 +62,15 @@
   $: ageData = [];
   $: metadata = {};
   $: currentLayer = 'population';
-  $: rankingTitle = 'Population';
-
 
 
   function getCountryData(iso3) {
+    //reset view
+    detailsLoadMsg = 'Loading data...'
+    mapData = [];
+    chartData = [];
+    //currentLayer = 'population';
+
     keyFigureData = [];
     const sources = [
       `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
@@ -94,6 +80,7 @@
       //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
     ];
     console.log(sources)
+
 
     const dataPromises = sources.map(source => {
       return new Promise((resolve, reject) => {
@@ -114,19 +101,22 @@
       .then(allData => {
         console.log('All data:', allData);
 
-
         if (allData[0].length<=0 && allData[1].length<=0 && allData[2].length<=0) {
-          loadStatusMsg = 'No data to display';
-          console.log('no data')
+          // overviewLoadMsg = 'No data to display';
+          // detailsLoadMsg = 'No data to display';
+          // console.log('no data')
         }
         else {
-          countrySelect.name = allData[0][0].location_name;
+          //get selected country name
+          let select = d3.select('.country-select').node();
+          countrySelect.name = select.options[select.selectedIndex].text;
 
           //format data
           formatPopulationData(allData[0]);
           formatOrgsData(allData[1].concat(allData[2]));
+          console.log('org 2 length=',allData[2].length)
           formatHNOData(allData[3]);
-          //formatIPCData(allData[4]);
+          //formatIPCData(allData[3]);
 
           //create keyfigures
           createKeyFigures(iso3);
@@ -170,6 +160,7 @@
       return acc;
     }, {});
     ageData = Object.values(ages);
+    console.log('ageData',ageData)
 
 
     //get population per adm area
@@ -184,6 +175,7 @@
       },
       d => d.admin1_name
     );
+    console.log('popByAdm',popByAdm)
 
     //convert rollup result to array
     let popByAdmArray = Array.from(popByAdm, ([admin1_name, values]) => {
@@ -198,7 +190,7 @@
 
     //save pop data
     popData.map = popByAdmArray;
-    popData.chart = popByAdmArray;
+    popData.chart = ageData;
     popData.totalValue = d3.sum(popByAdmArray, d => d.value);
   }
 
@@ -344,6 +336,7 @@
         }
       }
     });
+    console.log('pinAdm1Object', pinAdm1Object)
 
     //convert to array of objects
     const pinAdm1 = {};
@@ -370,7 +363,7 @@
     //get pin by sector for bar chart
     const pinSector = {};
     data.forEach(d => {
-      if (d.location_code === 'AFG' && d.population_status === 'INN' && d.sector_code !== 'Intersectoral' && d.disabled_marker === 'all') {
+      if (d.population_status === 'INN' && d.sector_code !== 'Intersectoral' && d.disabled_marker === 'all') {
         const sector = d.sector_name;
         const population = +d.population;
         
@@ -395,6 +388,7 @@
     }
     
     hnoData.chart = sectorPinArray;
+    console.log('sectorPinArray',sectorPinArray)
   }
 
 
@@ -490,7 +484,9 @@
     // ];
 
     //hno data
-    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`;
+    console.log(hnoURL)
+
     Papa.parse(hnoURL, {
       header: true,
       download: true,
@@ -578,14 +574,16 @@
     mapData = currentData.map;
     chartData = currentData.chart;
     totalValue = currentData.totalValue;
+
+    if (mapData.length<=0) detailsLoadMsg = 'No data to display';
   }
 
   onMount(async() => {
     getCountryData(countrySelect.code)
 
     //calculate available space for ranking chart
-    scrollingWrapperHeight = 500;//window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
-    scrollingWrapper.style.height = scrollingWrapperHeight + 'px';
+    // scrollingWrapperHeight = 500;//window.innerHeight - scrollingWrapper.getBoundingClientRect().top - 80;
+    // scrollingWrapper.style.height = scrollingWrapperHeight + 'px';
   });
 </script>
 
@@ -640,7 +638,7 @@
         {/if}
       {/each}
     {:else}
-      <div class='col-12 center-text'>{loadStatusMsg}</div>
+      <div class='col-12 center-text'>{overviewLoadMsg}</div>
     {/if}
   </div>
 
@@ -653,61 +651,64 @@
   </div>
 
   <div class='content grid-container'>
-    <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
+    {#if mapData.length>0 || chartData.length>0}
+      <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
 
-      {#if currentLayer==='orgs'}
-        <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata} />
-        <hr>
-      {:else if currentLayer==='hno'}
-        <div class='grid-container key-figure-container'>
-          <div class='col-6'>
-            <KeyFigure title={'Internally Displaced People'} value={hnoData.totalValue1} metadata={metadata} valueFormat={'.3s'} />
+        {#if currentLayer==='orgs'}
+          <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata} />
+          <hr>
+        {:else if currentLayer==='hno' && (hnoData.totalValue1>0 || hnoData.totalValue2>0)}
+          <div class='grid-container key-figure-container'>
+            {#if hnoData.totalValue1>0}
+              <div class='col-6'>
+                <KeyFigure title={'Internally Displaced People'} value={hnoData.totalValue1} metadata={metadata} valueFormat={'.3s'} />
+              </div>
+            {/if}
+            {#if hnoData.totalValue2>0}
+              <div class='col-6'>
+                <KeyFigure title={'Refugees'} value={hnoData.totalValue2} metadata={metadata} />
+              </div>
+            {/if}
           </div>
-          <div class='col-6'>
-            <KeyFigure title={'Refugees'} value={hnoData.totalValue2} metadata={metadata} />
-          </div>
-        </div>
-        <hr>
-      {:else}
+          <hr>
+        {:else}
+        {/if}
 
-      <!-- currentLayer==='population' -->
-        <!-- <div class='grid-container key-figure-container'>
-          <div class='col-6'>
-            <KeyFigure title={'Total'} value={totalValue} metadata={metadata} />
-          </div>
-          <div class='col-6'>
-            <KeyFigure title={'Total'} value={totalValue} metadata={metadata} />
-          </div>
-        </div> -->
-      {/if}
-
-      <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
-        {#if sidebarWidth>0}
-          {#if currentLayer==='orgs'}
-            <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
-            <div class='ranking-container'>
-              <Bar data={chartData} width={sidebarWidth} />
-            </div>
-          {:else if currentLayer==='hno'}
-            <h3 class='chart-title'>People in Need by Sector</h3>
-            <div class='ranking-container'>
-              <Bar data={chartData} width={sidebarWidth} />
-            </div>
-          {:else if currentLayer==='ipc'}
-            <h3 class='chart-title'>Population in IPC Phase 3+ Over Time</h3>
-            <Line data={chartData} width={sidebarWidth} height={200} /><!--width={containerWidth-chartWidth} height={chartHeight - 5}-->
-          {:else}<!-- currentLayer==='population' -->
-            <Pyramid data={ageData} title={'Population Demographics'} width={sidebarWidth} />
+        <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
+          {#if sidebarWidth>0}
+            {#if currentLayer==='orgs'}
+              <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
+              <div class='ranking-container'>
+                <Bar data={chartData} width={sidebarWidth} />
+              </div>
+            {:else if currentLayer==='hno'}
+              <h3 class='chart-title'>People in Need by Sector</h3>
+              <div class='ranking-container'>
+                <Bar data={chartData} width={sidebarWidth} />
+              </div>
+            {:else if currentLayer==='ipc'}
+              <h3 class='chart-title'>Population in IPC Phase 3+ Over Time</h3>
+              <Line data={chartData} width={sidebarWidth} height={200} /><!--width={containerWidth-chartWidth} height={chartHeight - 5}-->
+            {:else if currentLayer==='population'}
+              <Pyramid data={chartData} title={'Population Demographics'} width={sidebarWidth} />
+            {:else}
+            {/if}
           {/if}
+        </div>
+
+      </div>
+      <div class='main-content col-7'>
+        {#if mapData.length>0}
+          <Map mapData={mapData} THEME={currentLayer} LOCATION={countrySelect} />
         {/if}
       </div>
 
-    </div>
-    <div class='main-content col-7'>
-      {#if mapData.length>0}
-        <Map mapData={mapData} THEME={currentLayer} LOCATION={countrySelect} />
-      {/if}
-    </div>
+    {:else}
+      <div class='col-12'>
+        <p class='no-data-msg'>{detailsLoadMsg}</p>
+      </div>
+    {/if}
+
   </div>
 </main>
 
@@ -726,6 +727,7 @@
     margin-top: 15px;
   }
   .scrolling-wrapper {
+    height: 575px;
     overflow-y: scroll;
   }
   .select-wrapper {
