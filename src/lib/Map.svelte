@@ -124,6 +124,7 @@
         	props.reached = matched_data.reached;
         }
         if (THEME==='ipc') {
+        	props.percentInPhase = matched_data.percentInPhase;
         	props.referencePeriod = matched_data.referencePeriod;
         }
       }
@@ -247,7 +248,8 @@
 	    	content += `</ul>`;
 	    }
 	    else if (THEME === 'ipc') {
-	    	content += `<span class='theme'>Population in IPC Phase 3+:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+	    	let val = (prop.indicator_value===0) ? 0 : shortFormat(prop.indicator_value);
+	    	content += `<span class='theme'>Population in IPC Phase 3+:</span><br><span class="stat">${val}</span> (${d3.format(".0%")(prop.percentInPhase)})`;
 	    }
 	    else {
 	    	content += `<span class='theme'>${THEME}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;

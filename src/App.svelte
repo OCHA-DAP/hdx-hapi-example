@@ -34,7 +34,7 @@
     {tabName: 'Population', id: 'population'},
     {tabName: 'Operational Presence', id: 'orgs'},
     {tabName: 'Humanitarian Needs', id: 'hno'},
-    {tabName: 'Food Insecurity', id: 'ipc'},
+    //{tabName: 'Food Insecurity', id: 'ipc'},
   ];
 
   let sidebarWidth, scrollingWrapper;
@@ -61,30 +61,32 @@
   $: chartData = [];
   $: ageData = [];
   $: metadata = {};
-  $: currentLayer = 'population';
+  $: currentLayer = {id: 'population', name: 'Population'};
 
 
-  function getCountryData(iso3) {
-    //reset view
-    detailsLoadMsg = 'Loading data...'
-    mapData = [];
-    chartData = [];
-    //currentLayer = 'population';
+  
+  function loadCSVSources(urls, batchSize) {
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-    keyFigureData = [];
-    const sources = [
-      `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=10000&${app_indentifier}`,
-      `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
-      //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
-    ];
-    console.log(sources)
+    //process urls in batches
+    async function processUrlsInBatches(urls, batchSize, delayMs) {
+      let results = [];
+      for (let i = 0; i < urls.length; i += batchSize) {
+        const batch = urls.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(url => loadCSV(url)));
+        results = results.concat(batchResults);
+        if (i + batchSize < urls.length) {
+          await delay(delayMs);
+        }
+      }
+      return results;
+    }
 
-
-    const dataPromises = sources.map(source => {
+    function loadCSV(url) {
       return new Promise((resolve, reject) => {
-        Papa.parse(source, {
+        Papa.parse(url, {
           download: true,
           header: true,
           complete: function(results) {
@@ -95,18 +97,39 @@
           }
         });
       });
-    });
+    }
 
-    Promise.all(dataPromises)
+    //process queries in batches to avoid too many requests error
+    return processUrlsInBatches(urls, batchSize, 1000);
+  }
+
+
+  function getCountryData(iso3) {
+    //reset view
+    detailsLoadMsg = 'Loading data...'
+    mapData = [];
+    chartData = [];
+    keyFigureData = [];
+
+    //load new data
+    const sources = [
+      `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=10000&${app_indentifier}`,
+      `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      //`${base_url}food/food-security?ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+    ];
+
+    loadCSVSources(sources, 4)
       .then(allData => {
-        console.log('All data:', allData);
+        console.log('All data loaded:', allData);
 
-        if (allData[0].length<=0 && allData[1].length<=0 && allData[2].length<=0) {
-          // overviewLoadMsg = 'No data to display';
-          // detailsLoadMsg = 'No data to display';
-          // console.log('no data')
-        }
-        else {
+        // if (allData[0].length<=0 && allData[1].length<=0 && allData[2].length<=0) {
+        //   // overviewLoadMsg = 'No data to display';
+        //   // detailsLoadMsg = 'No data to display';
+        //   // console.log('no data')
+        // }
+        // else {
           //get selected country name
           let select = d3.select('.country-select').node();
           countrySelect.name = select.options[select.selectedIndex].text;
@@ -116,19 +139,86 @@
           formatOrgsData(allData[1].concat(allData[2]));
           console.log('org 2 length=',allData[2].length)
           formatHNOData(allData[3]);
-          //formatIPCData(allData[3]);
+          //formatIPCData(allData[4]);
 
           //create keyfigures
           createKeyFigures(iso3);
 
           //init pop layer
           onLayerChange(currentLayer);
-        }
+       // }
       })
       .catch(error => {
-        console.error('Error fetching data:', error);
-      });      
+        console.error('Error loading CSV data:', error);
+      });
   }
+
+
+  // function getCountryData(iso3) {
+  //   //reset view
+  //   detailsLoadMsg = 'Loading data...'
+  //   mapData = [];
+  //   chartData = [];
+  //   //currentLayer = 'population';
+
+  //   keyFigureData = [];
+  //   const sources = [
+  //     `${base_url}population-social/population?location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+  //     `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+  //     `${base_url}coordination-context/operational-presence?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=10000&${app_indentifier}`,
+  //     `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&location_code=${iso3}&admin_level=1&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+  //     //`${base_url}food/food-security?ipc_phase=3%2B&ipc_type=current&location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`
+  //   ];
+  //   console.log(sources)
+
+
+  //   const dataPromises = sources.map(source => {
+  //     return new Promise((resolve, reject) => {
+  //       Papa.parse(source, {
+  //         download: true,
+  //         header: true,
+  //         complete: function(results) {
+  //           resolve(results.data);
+  //         },
+  //         error: function(error) {
+  //           reject(error);
+  //         }
+  //       });
+  //     });
+  //   });
+
+  //   Promise.all(dataPromises)
+  //     .then(allData => {
+  //       console.log('All data:', allData);
+
+  //       if (allData[0].length<=0 && allData[1].length<=0 && allData[2].length<=0) {
+  //         // overviewLoadMsg = 'No data to display';
+  //         // detailsLoadMsg = 'No data to display';
+  //         // console.log('no data')
+  //       }
+  //       else {
+  //         //get selected country name
+  //         let select = d3.select('.country-select').node();
+  //         countrySelect.name = select.options[select.selectedIndex].text;
+
+  //         //format data
+  //         formatPopulationData(allData[0]);
+  //         formatOrgsData(allData[1].concat(allData[2]));
+  //         console.log('org 2 length=',allData[2].length)
+  //         formatHNOData(allData[3]);
+  //         //formatIPCData(allData[3]);
+
+  //         //create keyfigures
+  //         createKeyFigures(iso3);
+
+  //         //init pop layer
+  //         onLayerChange(currentLayer);
+  //       }
+  //     })
+  //     .catch(error => {
+  //       console.error('Error fetching data:', error);
+  //     });      
+  // }
 
   /***************************
    * Population data
@@ -397,6 +487,39 @@
    ***************************/
   function formatIPCData(data) {
     console.log('formatIPCData', data);
+
+
+    // CAN I AGGREGATE IPC DATA FROM ADM2 TO ADM1?
+    data.forEach(d => {
+      d.reference_period_end = new Date(d.reference_period_end);
+      d.population_in_phase = +d.population_in_phase;
+      d.population_fraction_in_phase = +d.population_fraction_in_phase;
+    });
+
+    // Group by admin1_code and ipc_phase
+    const nestedData = d3.groups(data, d => d.admin1_code, d => d.ipc_phase);
+
+    // Function to get the most recent data entry
+    const getMostRecent = arr => arr.reduce((a, b) => (a.reference_period_end > b.reference_period_end ? a : b));
+
+    // Aggregate data
+    const aggregatedData2 = nestedData.map(([admin1_code, phaseGroup]) => {
+      return phaseGroup.map(([ipc_phase, entries]) => {
+        const mostRecentEntry = getMostRecent(entries);
+        return {
+          admin1_code,
+          ipc_phase,
+          population_in_phase: d3.sum(entries, d => d.population_in_phase),
+          population_fraction_in_phase: d3.mean(entries, d => d.population_fraction_in_phase),
+          reference_period_end: mostRecentEntry.reference_period_end
+        };
+      });
+    }).flat();
+
+    console.log('aggregatedData2',aggregatedData2)
+    ///////
+
+
     // Initialize a dictionary to store the data by admin1_code
     const admIPC = {};
 
@@ -406,6 +529,7 @@
         const admin1Name = row.admin1_name;
         const ipcPhase = row.ipc_phase;
         const populationInPhase = row.population_in_phase;
+        const percentInPhase = row.population_fraction_in_phase;
         const referencePeriodStart = row.reference_period_start;
 
         // Check if the admin1_code is already in the dictionary
@@ -414,6 +538,7 @@
             admin1Name: admin1Name,
             ipcPhase: ipcPhase,
             populationInPhase: populationInPhase,
+            percentInPhase: percentInPhase,
             referencePeriod: referencePeriodStart
           };
         } 
@@ -424,6 +549,7 @@
               admin1Name: admin1Name,
               ipcPhase: ipcPhase,
               populationInPhase: populationInPhase,
+              percentInPhase: percentInPhase,
               referencePeriod: referencePeriodStart
             };
           }
@@ -439,6 +565,7 @@
           admin1_name: admIPC[admin1Code].admin1Name,
           ipcPhase: admIPC[admin1Code].ipcPhase,
           value: +admIPC[admin1Code].populationInPhase,
+          percentInPhase: +admIPC[admin1Code].percentInPhase,
           referencePeriod: admIPC[admin1Code].referencePeriod
         });
       }
@@ -453,7 +580,6 @@
 
       if (phase >= 3 && !isNaN(population)) {
         const date = +new Date(curr.reference_period_start);
-        console.log(date)
         if (acc[date]) {
           acc[date] += population;
         } else {
@@ -467,9 +593,6 @@
     ipcData.chart = Object.keys(aggregatedData).map(date => {
       return { date, value: aggregatedData[date] };
     });
-
-
-    console.log('trend data', ipcData.chart)
   }
 
 
@@ -483,39 +606,123 @@
     //   {title: 'Key figure', value: '500', series: pieData, seriesType: 'pie'},
     // ];
 
-    //hno data
-    const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`;
-    console.log(hnoURL)
+    // //hno data
+    // const hnoURL = `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`;
+    // console.log(hnoURL)
 
-    Papa.parse(hnoURL, {
-      header: true,
-      download: true,
-      complete: function(results) {
-        const pop = results.data.filter(row => row.population_group === 'all' && row.population_status === 'POP');
+    // Papa.parse(hnoURL, {
+    //   header: true,
+    //   download: true,
+    //   complete: function(results) {
+    //     const pop = results.data.filter(row => row.population_group === 'all' && row.population_status === 'POP');
+    //     updateKeyFigureData({title: 'Population', value: +pop[0].population}, pop[0].resource_hdx_id, 0);
+
+    //     const hno = results.data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
+    //     updateKeyFigureData({title: 'People in Need', value: +hno[0].population}, hno[0].resource_hdx_id, 1);
+
+    //     const rea = results.data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
+    //     if (rea.length>0) updateKeyFigureData({title: 'People Reached', value: +rea[0].population}, rea[0].resource_hdx_id, 2);
+    //   }
+    // });
+
+    // //conflict data
+    // const conflictURL = `${base_url}coordination-context/conflict-event?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0${app_indentifier}`;
+    // Papa.parse(conflictURL, {
+    //   header: true,
+    //   download: true,
+    //   complete: function(results) {
+    //     let totalEvents = 0;
+    //     let totalFatalities = 0;
+    //     results.data.forEach(d => {
+    //       totalEvents += +d.events;
+    //       totalFatalities += +d.fatalities;
+    //     });
+    //     console.log(totalEvents, totalFatalities)
+    //     //updateKeyFigureData({title: 'Conflict events', value: overall_risk}, results.data[0].resource_hdx_id, 3);
+    //   }
+    // });
+
+    // //risk data
+    // const riskURL = `${base_url}coordination-context/national-risk?location_code=${iso3}&output_format=csv&limit=100&offset=0&${app_indentifier}`;
+    // Papa.parse(riskURL, {
+    //   header: true,
+    //   download: true,
+    //   complete: function(results) {
+    //     const overall_risk = results.data[0].overall_risk;
+    //     updateKeyFigureData({title: 'Overall risk', value: overall_risk}, results.data[0].resource_hdx_id, 3);
+    //   }
+    // });
+
+    // //funding data
+    // const fundingURL = `${base_url}coordination-context/funding?location_code=${iso3}&output_format=csv&offset=0&${app_indentifier}`;
+    // Papa.parse(fundingURL, {
+    //   header: true,
+    //   download: true,
+    //   complete: function(results) {
+    //     const funding = results.data.filter(row => row.appeal_code === `H${iso3}24`);
+    //     const requirement = +funding[0].requirements_usd;
+    //     const fundedPercent = funding[0].funding_pct / 100;
+    //     const pieData = [1-fundedPercent, fundedPercent];
+
+    //     updateKeyFigureData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie'}, funding[0].resource_hdx_id, 4);
+    //   }
+    // });
+
+
+    const sources = [
+      `${base_url}affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&location_code=${iso3}&admin_level=0&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/conflict-event?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/conflict-event?location_code=${iso3}&admin_level=2&output_format=csv&limit=10000&offset=10000&${app_indentifier}`,
+      `${base_url}coordination-context/national-risk?location_code=${iso3}&output_format=csv&limit=100&offset=0&${app_indentifier}`,
+      `${base_url}coordination-context/funding?location_code=${iso3}&output_format=csv&offset=0&${app_indentifier}`
+    ];
+    console.log(sources)
+
+    loadCSVSources(sources, 2)
+      .then(results => {
+        console.log('All keyfigure data loaded:', results);
+
+        //hno 
+        const pop = results[0].filter(row => row.population_group === 'all' && row.population_status === 'POP');
         updateKeyFigureData({title: 'Population', value: +pop[0].population}, pop[0].resource_hdx_id, 0);
 
-        const hno = results.data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
+        const hno = results[0].filter(row => row.population_group === 'all' && row.population_status === 'INN');
         updateKeyFigureData({title: 'People in Need', value: +hno[0].population}, hno[0].resource_hdx_id, 1);
 
-        const rea = results.data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
+        const rea = results[0].filter(row => row.population_group === 'all' && row.population_status === 'REA');
         if (rea.length>0) updateKeyFigureData({title: 'People Reached', value: +rea[0].population}, rea[0].resource_hdx_id, 2);
-      }
-    });
 
-    //funding data
-    const fundingURL = `${base_url}coordination-context/funding?location_code=${iso3}&output_format=csv&offset=0&${app_indentifier}`;
-    Papa.parse(fundingURL, {
-      header: true,
-      download: true,
-      complete: function(results) {
-        const funding = results.data.filter(row => row.appeal_code === `H${iso3}24`);
+        //conflict 
+        // let totalEvents = 0;
+        // results[1].forEach(d => totalEvents += +d.events);
+        // console.log(results[1], totalEvents)
+
+        let totalEvents = 0;
+        let conflictData = results[1].concat(results[2]);
+        // Loop through each entry in the data
+        conflictData.forEach(d => {
+          const eventDate = new Date(d.reference_period_end);
+          if (eventDate.getFullYear() === 2024) {
+            totalEvents += +d.events;
+          }
+        });
+        updateKeyFigureData({title: 'Conflict Events in 2024', value: totalEvents}, conflictData[0].resource_hdx_id, 3);
+
+        //risk
+        const riskData = results[3][0];
+        updateKeyFigureData({title: 'Overall Risk', value: riskData.overall_risk}, riskData.resource_hdx_id, 4);
+
+        //funding
+        const funding = results[4].filter(row => row.appeal_code === `H${iso3}24`);
         const requirement = +funding[0].requirements_usd;
         const fundedPercent = funding[0].funding_pct / 100;
         const pieData = [1-fundedPercent, fundedPercent];
+        updateKeyFigureData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie'}, funding[0].resource_hdx_id, 5);
 
-        updateKeyFigureData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie'}, funding[0].resource_hdx_id, 3);
-      }
-    });
+      })
+      .catch(error => {
+        console.error('Error loading CSV data:', error);
+      });
   }
 
   async function updateKeyFigureData(keyfig, hdx_id, order_id) {
@@ -554,17 +761,17 @@
     });
   }
 
-  function onLayerChange(id) {
-    currentLayer = id;
+  function onLayerChange(selectedLayer) {
+    currentLayer = {id: selectedLayer.id, name: selectedLayer.name};
     let currentData = {};
 
-    if (currentLayer === 'orgs') {
+    if (currentLayer.id === 'orgs') {
       currentData = orgData;
     }
-    else if (currentLayer === 'hno') {
+    else if (currentLayer.id === 'hno') {
       currentData = hnoData;
     }
-    else if (currentLayer === 'ipc') {
+    else if (currentLayer.id === 'ipc') {
       currentData = ipcData;
     }
     else {
@@ -575,7 +782,9 @@
     chartData = currentData.chart;
     totalValue = currentData.totalValue;
 
-    if (mapData.length<=0) detailsLoadMsg = 'No data to display';
+    if (mapData.length<=0) {
+      detailsLoadMsg = `There is no ${currentLayer.name.toLowerCase()} data for ${countrySelect.name}`;
+    }
   }
 
   onMount(async() => {
@@ -589,6 +798,7 @@
 
 
 <main>
+  <p>This dashboard was created to show a selection of key figures, charts and a map for all countries in the HDX Humanitarian API</p>
   <div class='select-wrapper'>
     <!-- <select class='country-select' bind:value={countrySelect.code} on:change={() => getCountryData(countrySelect.code)}>
       {#each countryData as {code, name}}
@@ -638,7 +848,7 @@
         {/if}
       {/each}
     {:else}
-      <div class='col-12 center-text'>{overviewLoadMsg}</div>
+      <div class='col-12 no-data-msg'>{overviewLoadMsg}</div>
     {/if}
   </div>
 
@@ -646,7 +856,7 @@
 
   <div class='tabs'>
     {#each tabs as {tabName, id}, i}
-      <div class='tab' class:active={id === currentLayer} on:click={() => onLayerChange(id)}><a title={tabName}>{tabName}</a></div>
+      <div class='tab' class:active={id === currentLayer.id} on:click={() => onLayerChange({id: id, name: tabName})}><a title={tabName}>{tabName}</a></div>
     {/each}
   </div>
 
@@ -654,10 +864,10 @@
     {#if mapData.length>0 || chartData.length>0}
       <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
 
-        {#if currentLayer==='orgs'}
+        {#if currentLayer.id==='orgs'}
           <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata} />
           <hr>
-        {:else if currentLayer==='hno' && (hnoData.totalValue1>0 || hnoData.totalValue2>0)}
+        {:else if currentLayer.id==='hno' && (hnoData.totalValue1>0 || hnoData.totalValue2>0)}
           <div class='grid-container key-figure-container'>
             {#if hnoData.totalValue1>0}
               <div class='col-6'>
@@ -676,20 +886,20 @@
 
         <div class='scrolling-wrapper' bind:this={scrollingWrapper}>
           {#if sidebarWidth>0}
-            {#if currentLayer==='orgs'}
+            {#if currentLayer.id==='orgs'}
               <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
               <div class='ranking-container'>
                 <Bar data={chartData} width={sidebarWidth} />
               </div>
-            {:else if currentLayer==='hno'}
+            {:else if currentLayer.id==='hno'}
               <h3 class='chart-title'>People in Need by Sector</h3>
               <div class='ranking-container'>
                 <Bar data={chartData} width={sidebarWidth} />
               </div>
-            {:else if currentLayer==='ipc'}
+            {:else if currentLayer.id==='ipc'}
               <h3 class='chart-title'>Population in IPC Phase 3+ Over Time</h3>
-              <Line data={chartData} width={sidebarWidth} height={200} /><!--width={containerWidth-chartWidth} height={chartHeight - 5}-->
-            {:else if currentLayer==='population'}
+              <Line data={chartData} width={sidebarWidth} height={250} /><!--width={containerWidth-chartWidth} height={chartHeight - 5}-->
+            {:else if currentLayer.id==='population'}
               <Pyramid data={chartData} title={'Population Demographics'} width={sidebarWidth} />
             {:else}
             {/if}
@@ -699,7 +909,7 @@
       </div>
       <div class='main-content col-7'>
         {#if mapData.length>0}
-          <Map mapData={mapData} THEME={currentLayer} LOCATION={countrySelect} />
+          <Map mapData={mapData} THEME={currentLayer.id} LOCATION={countrySelect} />
         {/if}
       </div>
 
