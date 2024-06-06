@@ -62,7 +62,7 @@
   const keyFigures = [
     {id: 'Population', endpoint: `population-social/population?gender=all&age_range=all&admin_level=0`},
     {id: 'HNO', endpoint: `affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&admin_level=0`},
-    {id: 'Conflict', endpoint: `coordination-context/conflict-event?admin_level=2`},
+    {id: 'Conflict', endpoint: `coordination-context/conflict-event?event_type=civilian_targeting&admin_level=2`},
     {id: 'Risk', endpoint: `coordination-context/national-risk?output_format=csv`},
     {id: 'Funding', endpoint: `coordination-context/funding?`}
   ];

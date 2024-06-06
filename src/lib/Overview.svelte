@@ -36,7 +36,7 @@
           }
         }
       });
-      if (conflictData.length>0) updateData({title: 'Conflict Events in 2024', value: totalEvents, metadata: keyfigures[2].metadata[0]}, 3);
+      if (conflictData.length>0) updateData({title: 'Civilian Targeted Conflict Events 2024', value: totalEvents, metadata: keyfigures[2].metadata[0]}, 3);
     }
 
     //risk
