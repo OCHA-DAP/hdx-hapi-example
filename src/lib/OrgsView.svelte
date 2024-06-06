@@ -46,7 +46,7 @@
       }
     });
 
-    console.log('admOrgs',admOrgs)
+    //console.log('admOrgs',admOrgs)
 
     //convert to array of objects
     const admOrgsArray = {};
@@ -85,23 +85,22 @@
         });
       }
     }
-
-    //format data for org type chart
-    const orgTypeCounts = d3.rollup(
-      data,
-      v => v.length,
-      d => d.org_type_description
-    );
-
-    orgTypeCounts.forEach((value, key) => {
-      if (key!=='' && key!==undefined) {
-        orgTypeData.push({name: key, value: value});
-      }
-    });
-
     chartData = sectorCountArray;
     mapData = Object.values(admOrgsArray);
     totalValue = allOrgs.size;
+
+    //format data for org type chart
+    const uniqueOrgs = data.filter((d, index, self) =>
+      d.org_name && d.org_name.trim() !== '' &&
+      index === self.findIndex((t) => t.org_name === d.org_name)
+    );
+
+    //array of counts of each org type
+    orgTypeData = Array.from(d3.rollup(
+      uniqueOrgs,
+      v => v.length/totalValue,
+      d => d.org_type_description
+    ), ([name, value]) => ({ name, value }));
   }
 
 	onMount(() => {
@@ -123,16 +122,15 @@
           <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
           <div class='ranking-container'>
               <Bar data={chartData} width={sidebarWidth} />
-              <Source metadata={metadata[0]} align={'right'} />
           </div>
         {/if}
-<!--         {#if orgTypeData.length>0}
+        {#if orgTypeData.length>0}
           <h3 class='chart-title'>Humanitarian Organizations by Type</h3>
           <div class='ranking-container'>
-            <Bar data={orgTypeData} width={sidebarWidth} />
+            <Bar data={orgTypeData} width={sidebarWidth} valueFormat={d3.format('.0%')} />
             <Source metadata={metadata[0]} align={'right'} />
           </div>
-        {/if} -->
+        {/if}
       {/if}
     </div>
     <div class='main-content col-7'>

@@ -10,7 +10,7 @@
 	export let barPadding = 8;
 	export let nameWidth = 200;
 	export let labelWidth = 50;
-	export let textPadding = 10;
+	export let textPadding = 8;
 
 	let chartWidth, height, xScale, yScale;
 
@@ -22,6 +22,9 @@
 	$: chartData && init()
 
 	function init() {
+		//remove any emoty rows
+		chartData = chartData.filter(row => row.name !== '');
+
 		chartWidth = width - nameWidth - labelWidth;
 		height = chartData.length * (barHeight+barPadding);
 
