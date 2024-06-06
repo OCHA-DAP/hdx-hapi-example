@@ -11,6 +11,8 @@
 	//sort data by date
 	data.sort((a, b) => a.date - b.date);
 
+	//console.log(data)
+
 	const xAccessor = (d) => d.date;
 	const yAccessor = (d) => d.value;
 
@@ -31,7 +33,7 @@
     .call(g => g.selectAll('.tick line').attr('stroke', 'none'));
 
   yAxis = g => g
-    .attr('transform', `translate(35, 0)`)
+    .attr('transform', `translate(35, -8)`)
     .call(d3.axisLeft(yScale).ticks(5).tickSizeOuter(0).tickFormat(d3.format('.2s')))
     .call(g => g.selectAll('.domain').remove())
     .call(g => g.selectAll('.tick text').attr('fill', '#6d6d6d'))
@@ -39,7 +41,7 @@
     .call(g => g.selectAll('.tick line').attr('stroke', 'none'));
 
   yAxisGrid = g => g
-    .attr('transform', `translate(0, 8)`)
+    .attr('transform', `translate(0, 0)`)
     .call(d3.axisLeft(yScale).ticks(5).tickSizeOuter(0).tickSize(-width).tickFormat(''))
     .call(g => g.selectAll('.domain').remove())
     .call(g => g.selectAll('line').attr('stroke', '#EFEFEF'))
@@ -57,26 +59,25 @@
 
   	await tick();
 
-		// Create a tooltip element
-		tooltip = d3.select('.tooltip');
+		// // Create a tooltip element
+		// tooltip = d3.select('.tooltip');
 
-		//define circle events
-  	const svg = d3.select('svg');
-		svg.selectAll('circle.dot')
-			.on('mouseover', (e, d) => {
-				console.log('hello')
-				tooltip.style('opacity', 1);
-				d3.select(e.currentTarget).attr('opacity', 1); // Enlarge the circle on hover
-			})
-			.on('mousemove', (e, d) => {
-				tooltip.html(`Date: ${d3.timeFormat('%B %d, %Y')(xAccessor(d))}<br>Value: ${yAccessor(d)}`)
-					.style('left', (e.pageX + 10) + 'px')
-					.style('top', (e.pageY - 28) + 'px');
-			})
-			.on('mouseout', (e, d) => {
-				tooltip.style('opacity', 0);
-				d3.select(e.currentTarget).attr('opacity', 0); // Reset the circle size
-			});
+		// //define circle events
+  	// const svg = d3.select('svg');
+		// svg.selectAll('circle.dot')
+		// 	.on('mouseover', (e, d) => {
+		// 		tooltip.style('opacity', 1);
+		// 		d3.select(e.currentTarget).attr('opacity', 1); // Enlarge the circle on hover
+		// 	})
+		// 	.on('mousemove', (e, d) => {
+		// 		tooltip.html(`Date: ${d3.timeFormat('%B %d, %Y')(xAccessor(d))}<br>Value: ${yAccessor(d)}`)
+		// 			.style('left', (e.pageX + 10) + 'px')
+		// 			.style('top', (e.pageY - 28) + 'px');
+		// 	})
+		// 	.on('mouseout', (e, d) => {
+		// 		tooltip.style('opacity', 0);
+		// 		d3.select(e.currentTarget).attr('opacity', 0); // Reset the circle size
+		// 	});
 	});
 </script>
 
@@ -87,13 +88,13 @@
 		<g bind:this={gx} />
 		<g bind:this={gy} />
 		
-		{#each data as d, i}
+<!-- 		{#each data as d, i}
 			<circle class='dot'
 				cx={xScale(xAccessor(d)) + 50}
 				cy={yScale(yAccessor(d))}
 				r={3}
 			/>
-		{/each}
+		{/each} -->
 	</svg>
 
 	<div class='tooltip'></div>

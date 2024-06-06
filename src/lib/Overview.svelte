@@ -27,7 +27,6 @@
     //conflict
     let conflictData = keyfigures[2].data;
     if (conflictData) {
-      console.log(conflictData)
       let totalEvents = 0;
       conflictData.forEach(d => {
         if (d!==undefined) {
@@ -51,7 +50,7 @@
         const requirement = +funding[0].requirements_usd;
         const fundedPercent = funding[0].funding_pct / 100;
         const pieData = [1-fundedPercent, fundedPercent];
-        updateData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: keyfigures[4].metadata}, 5);
+        updateData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: keyfigures[4].metadata[0]}, 5);
       }
     }
   }
@@ -61,7 +60,6 @@
   }
 
 	onMount(() => {
-    console.log('data',data)
     if (data && data.length>0) formatData(data);
 	})
 </script>
@@ -76,7 +74,7 @@
     {/if}
   {/each}
 {:else}
-  <div class='col-12 no-data-msg'>no data</div>
+  <div class='col-12 no-data-msg'>No data available</div>
 {/if}
 
 <style lang='scss'>

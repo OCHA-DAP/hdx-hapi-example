@@ -14,6 +14,7 @@
 	let totalValue;
   let mapData = [];
   let chartData = [];
+  let orgTypeData = [];
   let sidebarWidth;
 
 	//$: formattedData = formatData(data, metadata);
@@ -59,8 +60,6 @@
       };
     }
 
-    //orgData.totalValue = allOrgs.size;
-
     //get num of orgs by sector
     const sectorCounts = {};
     data.forEach(row => {
@@ -87,7 +86,19 @@
       }
     }
 
-    //orgData.chart = sectorCountArray;
+    //format data for org type chart
+    const orgTypeCounts = d3.rollup(
+      data,
+      v => v.length,
+      d => d.org_type_description
+    );
+
+    orgTypeCounts.forEach((value, key) => {
+      if (key!=='' && key!==undefined) {
+        orgTypeData.push({name: key, value: value});
+      }
+    });
+
     chartData = sectorCountArray;
     mapData = Object.values(admOrgsArray);
     totalValue = allOrgs.size;
@@ -108,13 +119,20 @@
         <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata[0]} />
         <hr>
 
-        <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
-        <div class='ranking-container'>
-          {#if chartData.length>0}
-            <Bar data={chartData} width={sidebarWidth} />
+        {#if chartData.length>0}
+          <h3 class='chart-title'>Humanitarian Organizations by Sector</h3>
+          <div class='ranking-container'>
+              <Bar data={chartData} width={sidebarWidth} />
+              <Source metadata={metadata[0]} align={'right'} />
+          </div>
+        {/if}
+<!--         {#if orgTypeData.length>0}
+          <h3 class='chart-title'>Humanitarian Organizations by Type</h3>
+          <div class='ranking-container'>
+            <Bar data={orgTypeData} width={sidebarWidth} />
             <Source metadata={metadata[0]} align={'right'} />
-          {/if}
-        </div>
+          </div>
+        {/if} -->
       {/if}
     </div>
     <div class='main-content col-7'>

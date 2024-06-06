@@ -70,6 +70,7 @@
   async function fetchData(endpoint) {
     try {
       const query = `${base_url}${endpoint}&location_code=${selectedCountry}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
+      console.log(selectedCountry, endpoint)
       const response = await fetch(query, { signal: abortController.signal });
       const text = await response.text();
       return new Promise((resolve, reject) => {
@@ -176,7 +177,7 @@
   async function onCountryChange(event) {
     selectedCountry = event.target.value;
 
-    //abort ongoing fetch requests and create new controller
+    //abort ongoing fetch requests, create new controller
     abortController.abort(); 
     abortController = new AbortController();
 
@@ -191,11 +192,17 @@
   }
 
   async function loadData() {
+    //disable dropdown until page is loaded
+    d3.select(".country-select").node().disabled = true;
+
     await loadViewsData();
     detailsLoading = false;
 
     await loadKeyFiguresData();
     overviewLoading = false;
+
+    //enable dropdown once page is loaded
+    d3.select(".country-select").node().disabled = false;
   }
 
   onMount(async () => {
@@ -208,7 +215,7 @@
 <main>
   <header>
     <div class='select-wrapper'>
-      <select bind:value={selectedCountry} on:change={onCountryChange}>
+      <select class='country-select' bind:value={selectedCountry} on:change={onCountryChange}>
         {#each countries as country}
           <option value={country.code}>{country.name}</option>
         {/each}
@@ -219,13 +226,13 @@
 
   <h2 class='header'>Country Overview</h2>
   
-  <div class='grid-container key-figure-container'>
     {#if overviewLoading}
       <div class='col-12 no-data-msg'>Loading...</div>
     {:else}
-      <Overview data={keyFiguresData} iso3={selectedCountry} />
+      <div class='grid-container key-figure-container'>
+        <Overview data={keyFiguresData} iso3={selectedCountry} />
+      </div>
     {/if}
-  </div>
 
   <h2 class='header details'>Country Details</h2>
 
