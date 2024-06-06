@@ -34,9 +34,11 @@
 	});
 </script>
 
-<div class='pie'>
-	<svg bind:this={svg} viewBox='0 0 {width} {height}' preserveAspectRatio='none' {width} {height}></svg>
-</div>
+{#if width>30}
+	<div class='pie'>
+		<svg bind:this={svg} preserveAspectRatio='none' {width} {height}></svg>
+	</div>
+{/if}
 
 <style lang='scss'>
 </style>

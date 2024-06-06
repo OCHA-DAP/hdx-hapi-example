@@ -2,6 +2,7 @@
   import * as d3 from 'd3';
   import Column from './Charts/Column.svelte'
   import Pie from './Charts/Pie.svelte'
+  import Source from './Source.svelte'
   import Sparkline from './Charts/Sparkline.svelte'
 
   export let title = 'Key figure';
@@ -16,12 +17,8 @@
 	let keyFigInner, containerWidth, chartWidth, chartHeight;
 
 	//key figure value
-	$: keyVal = value.toString().replace(/,/g, '');
+	$: keyVal = (value!==undefined) ? value.toString().replace(/,/g, '') : value;
 	$: keyVal = (keyVal>0) ? d3.format(valueFormat)(keyVal).replace(/G/, 'B') : keyVal;
-
-	//metadata values
-	$: updatedDate = (metadata.date==undefined) ? 'MM DD, YYYY' : dateFormat(new Date(metadata.date));
-	$: provider = metadata.provider ?? 'Source';
 </script>
 
 <div class='key-figure'>
@@ -38,9 +35,7 @@
 			{/if}
 		{/if}
 	</div>
-	<div class='small'>
-		{updatedDate} | {provider} | <a href={metadata.datasetURL} target='_blank'>DATA</a>
-	</div>
+	<Source {metadata} />
 </div>
 
 

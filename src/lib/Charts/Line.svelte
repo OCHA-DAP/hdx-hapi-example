@@ -7,8 +7,10 @@
 	export let width = 75;
 
 	let gy, gx, gyg, yAxis, yAxisGrid, xAxis, tooltip;
-	console.log(data)
-	
+
+	//sort data by date
+	data.sort((a, b) => a.date - b.date);
+
 	const xAccessor = (d) => d.date;
 	const yAccessor = (d) => d.value;
 

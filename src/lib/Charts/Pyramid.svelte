@@ -14,7 +14,7 @@
 
 
   function formatData(data) {
-		const allAgeRanges = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
+  	const allAgeRanges = [...new Set(data.map(item => item.age_range))];
 		const genders = [...new Set(data.map(item => item.gender))];
 
 		// Create a complete dataset with all combinations of gender and age_range
@@ -37,8 +37,8 @@
 	function sortByAgeRange(data) {
     return data.sort((a, b) => {
       const getStartAge = (ageRange) => {
-        if (ageRange === '80+') {
-          return 80;
+        if (ageRange.includes('+')) {
+          return ageRange.split('+')[0];
         }
         return parseInt(ageRange.split('-')[0]);
       };
@@ -75,13 +75,6 @@
 	    .rangeRound([height - margin.bottom, margin.top])
 	    .padding(0.1)
 
-	  // xAxis = g => g
-	  //   .attr('transform', `translate(0,${height - margin.bottom})`)
-	  //   .call(g => g.append('g').call(d3.axisBottom(xM).ticks(width / 90, 's')))
-	  //   .call(g => g.append('g').call(d3.axisBottom(xF).ticks(width / 90, 's')))
-	  //   .call(g => g.selectAll('.domain').remove())
-	  //   .call(g => g.selectAll('.tick:first-of-type').remove())
-
 	  yAxis = g => g
 	    .attr('transform', `translate(40)`)
 	    .call(d3.axisLeft(y).tickSizeOuter(0))
@@ -95,7 +88,6 @@
 	    .call(g => g.selectAll('.domain').remove())
 	    .call(g => g.selectAll('line').attr('stroke', '#EFEFEF'))
 
-	  //d3.select(gx).call(xAxis);
   	d3.select(gy).call(yAxis);
   	d3.select(gyg).call(yAxisGrid);
   }
@@ -161,7 +153,7 @@
 		margin-top: 15px;
 	}
 	.pyramid {
-		margin: 10px 0 20px;
+		margin: 10px 0 0;
 	}
 	text {
 		font-size: 14px;

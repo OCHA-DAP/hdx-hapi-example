@@ -51,24 +51,23 @@
 
 
 	let data = mapData;
-	$: if (data != mapData) {  
-		console.log('map data is', mapData)
+	$: if (data != mapData) {
 		data = mapData;
     updateFeatures();
 	}
 
 
 	onMount(() => {
-		//calculate available space for map
-		let mapHeight = 600;//window.innerHeight - mapContainer.getBoundingClientRect().top - 80;
+		let mapHeight = 600;
 		mapContainer.style.height = mapHeight + 'px';
 
 		//init map
 	  map = new mapboxgl.Map({
 	    container: mapContainer,
 	    style: 'mapbox://styles/humdata/cl3lpk27k001k15msafr9714b',
-	    center: center,
-	    zoom: zoom
+	    //center: center,
+	    zoom: zoom,
+	    minZoom: 3
 	  });
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
@@ -93,7 +92,18 @@
     return response.json();
   }
 
-  function findADM(props) {
+  function findAdm0Name(props) {
+	  const keysToFind = ['ADM0_EN', 'ADM0_ES', 'ADM0_FR', 'ADM0_PT'];
+
+	  for (let key of keysToFind) {
+	    if (props.hasOwnProperty(key)) {
+	      return props[key];
+	    }
+	  }
+	  return null;
+	}
+
+  function findAdm1Name(props) {
 	  const keysToFind = ['ADM1_EN', 'ADM1_ES', 'ADM1_FR', 'ADM1_PT'];
 
 	  for (let key of keysToFind) {
@@ -105,7 +115,6 @@
 	}
 
   function match_geojson(geojson, indicator_data) {
-  	console.log('indicator_data',indicator_data)
     geojson.features.forEach(feature => {
       const props = feature.properties;
       const matched_data = indicator_data.find(item => item.admin1_code === props.ADM1_PCODE);
@@ -129,7 +138,7 @@
         }
       }
       else {
-      	props.ADM1_NAME = findADM(props);
+      	props.ADM1_NAME = findAdm1Name(props);
         props.indicator_value = 'NA';
         props.indicator_name = THEME;
       }
@@ -162,12 +171,12 @@
 			colorRange = popColorRange;
 
 		//for demo, used local copies of geojson
-		const response = await fetch(`itos-${LOCATION.code}.geojson`, {
+		const response = await fetch(`itos-${LOCATION}.geojson`, {
 			body: JSON.stringify()
 		});
 	  const geojson_data = await response.json();
 	  currentFeatures = match_geojson(geojson_data, data);
-    console.log('loaded features',currentFeatures)
+    //console.log('loaded features',currentFeatures)
 
   	const max = d3.max(currentFeatures.features, function(d) { return +d.properties.indicator_value; });
   	colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
@@ -200,8 +209,8 @@
 	    map.getCanvas().style.cursor = 'pointer';
 
 	    const prop = e.features[0].properties;
-	    let content = `<h2>${prop.ADM1_NAME}, ${LOCATION.name}</h2>`;
-
+	    let adm0_name = findAdm0Name(prop);
+	    let content = `<h2>${prop.ADM1_NAME}, ${adm0_name}</h2>`;
 
 	    if (THEME === 'population') {
 	    	content += `<span class='theme'>Population:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
@@ -218,34 +227,20 @@
 						content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
 					});
 					content += `</ul>`;
-
-		    	// content += `<hr><h5>Top 5 Organizations</h5>`;
-	  			// let orgs = Object.entries(orgsObject[prop.ADM1_PCODE]);
-	  			// orgs.sort((a,b) => b[1] - a[1]);
-
-					// orgs.slice(0, 5).forEach((org, i) => {
-					// 	content += org[0];
-					// 	if (i<4) content += ', '
-					// });
-
-		    	// content += `<br><br><h5>Top 5 Sectors</h5>`;
-	  			// let sectors = Object.entries(sectorsObject[prop.ADM1_PCODE]);
-	  			// sectors.sort((a,b) => b[1] - a[1]);
-
-					// sectors.slice(0, 5).forEach((sector, i) => {
-					// 	content += sector[0];
-					// 	if (i<4) content += ', '
-					// });
 				}
 	    }
 	    else if (THEME === 'hno') {
-	    	content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-
-	    	content += `<hr><ul class="sector-list">`;
-	    	content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
-	    	content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
-	    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
-	    	content += `</ul>`;
+	    	if (prop.indicator_value==='NA') {
+		    	content += `<span class='theme'>People in need:</span><div class="stat">No data</div>`;
+	    	}
+	    	else {
+		    	content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+		    	content += `<hr><ul class="sector-list">`;
+		    	content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
+		    	content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
+		    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
+		    	content += `</ul>`;
+	    	}
 	    }
 	    else if (THEME === 'ipc') {
 	    	let val = (prop.indicator_value===0) ? 0 : shortFormat(prop.indicator_value);
@@ -276,7 +271,7 @@
 		}
 
 		//update legend
-		d3.select('.legend-body').selectAll("*").remove();
+		d3.select('.legend-body').selectAll('*').remove();
 		createMapLegend();
 	}
 
@@ -284,7 +279,7 @@
 		//zoom map to bounds
 		if (currentFeatures !== undefined) {
 			let bbox = turf.bbox(currentFeatures);
-			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 125, left: 50}, duration: 500});
+			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 125, left: 50}, duration: 100});
 		}
 	}
 
@@ -305,6 +300,18 @@
 
 		d3.select('.legend-body')
 		  .call(colorLegend);
+
+		//no data
+	  var nodata = svg.append('svg')
+	    .attr('class', 'no-data-key');
+
+	  nodata.append('rect')
+	    .attr('width', 15)
+	    .attr('height', 15);
+
+	  nodata.append('text')
+	    .attr('class', 'label')
+	    .text('No Data');
 	}
 
 	//mouse event/leave events
@@ -337,22 +344,5 @@
 	.right-content {
 		margin-bottom: 20px;
 		position: relative;
-	}
-	.map-legend {
-    background-color: rgba(255, 255, 255, 0.8);
-		bottom: 15px;
-  	font-family: 'Source Sans Pro', sans-serif;
-		font-size: 13px;
-		height: 130px;
-    padding: 15px 20px;
-		position: absolute;
-		right: 15px;
-    width: 150px;
-	}
-	.legend-title {
-		line-height: 16px;
-	}
-	ul {
-		list-style-type: none;
 	}
 </style>
