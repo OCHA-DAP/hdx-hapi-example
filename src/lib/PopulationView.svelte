@@ -9,6 +9,7 @@
 	export let id;
 	export let data;
 	export let metadata;
+  export let endpoint;
 	export let iso3;
 
   let mapData = [];
@@ -111,7 +112,7 @@
 	    	{#if chartData.length>0}	 
 
 		      <Pyramid data={chartData} title={'Population Demographics'} width={sidebarWidth} />
-		      <Source metadata={metadata[0]} align={'right'} />
+		      <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
 
 		    {:else}
 
@@ -119,7 +120,7 @@
 			      <div class='grid-container key-figure-container'>
 			    		{#each keyFigures as figure}
 								<div class='col-6'>
-			            <KeyFigure title={figure.title} value={figure.value} metadata={metadata[0]} />
+			            <KeyFigure title={figure.title} value={figure.value} metadata={metadata[0]} endpoint={endpoint} />
 			          </div>
 			        {/each}
 		        </div>

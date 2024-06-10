@@ -69,9 +69,9 @@
 
   async function fetchData(endpoint) {
     try {
-      const query = `${base_url}${endpoint}&location_code=${selectedCountry}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
-      console.log(selectedCountry, endpoint)
-      const response = await fetch(query, { signal: abortController.signal });
+      //const query = `${base_url}${endpoint}&location_code=${selectedCountry}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
+      //console.log(selectedCountry, endpoint)
+      const response = await fetch(endpoint, { signal: abortController.signal });
       const text = await response.text();
       return new Promise((resolve, reject) => {
         Papa.parse(text, {
@@ -89,18 +89,18 @@
     }
   }
 
-  async function fetchMetadata(endpoint) {
-    try {
-      const response = await fetch(`${base_url}${endpoint}&location_code=${selectedCountry}&app_identifier=${app_indentifier}`, { signal: abortController.signal });
-      return await response.json(); 
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Fetch aborted');
-      } else {
-        throw error;
-      }
-    }
-  }
+  // async function fetchMetadata(endpoint) {
+  //   try {
+  //     const response = await fetch(`${base_url}${endpoint}&location_code=${selectedCountry}&app_identifier=${app_indentifier}`, { signal: abortController.signal });
+  //     return await response.json(); 
+  //   } catch (error) {
+  //     if (error.name === 'AbortError') {
+  //       console.log('Fetch aborted');
+  //     } else {
+  //       throw error;
+  //     }
+  //   }
+  // }
 
   async function fetchDataWithRateLimit(endpoint, delay) {
     await new Promise(resolve => setTimeout(resolve, delay));
@@ -108,7 +108,8 @@
   }
 
   function generateMetadataEndpoint(hdx_id) {
-    return `metadata/resource?resource_hdx_id=${hdx_id}&output_format=csv`;
+    //return `metadata/resource?resource_hdx_id=${hdx_id}&output_format=csv`;
+    return `${base_url}metadata/resource?resource_hdx_id=${hdx_id}&output_format=csv&limit=100&app_identifier=${app_indentifier}`;
   }
 
   async function loadViewsData() {
@@ -118,10 +119,12 @@
       let data = [];
       let offset = 0;
       let fetchedData;
+      let endpoint = '';
 
       //data pagination
       do {
-        const endpoint = `${view.endpoint}&offset=${offset}`;
+        endpoint = `${base_url}${view.endpoint}&location_code=${selectedCountry}&offset=${offset}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
+        //endpoint = `${view.endpoint}&offset=${offset}`;
         fetchedData = await fetchDataWithRateLimit(endpoint, delay);
         data = data.concat(fetchedData);
         offset += 10000;
@@ -137,7 +140,8 @@
       const metadataEndpoint = generateMetadataEndpoint(data[0].resource_hdx_id);
       const metadata = await fetchDataWithRateLimit(metadataEndpoint, delay + 100);
 
-      viewsData = [...viewsData, { id: view.id, data, metadata }];
+      console.log('---endpoint', endpoint)
+      viewsData = [...viewsData, { id: view.id, data, metadata, endpoint }];
 
       delay += rateDelay;
     }
@@ -150,10 +154,12 @@
       let data = [];
       let offset = 0;
       let fetchedData;
+      let endpoint = '';
 
       //data pagination
       do {
-        const endpoint = `${keyFigure.endpoint}&offset=${offset}`;
+        //const endpoint = `${keyFigure.endpoint}&offset=${offset}`;
+        endpoint = `${base_url}${keyFigure.endpoint}&location_code=${selectedCountry}&offset=${offset}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
         fetchedData = await fetchDataWithRateLimit(endpoint, delay);
         data = data.concat(fetchedData);
         offset += 10000;
@@ -168,7 +174,7 @@
       const metadataEndpoint = generateMetadataEndpoint(data[0].resource_hdx_id);
       const metadata = await fetchDataWithRateLimit(metadataEndpoint, delay + 100);
 
-      keyFiguresData = [...keyFiguresData, { id: keyFigure.id, data, metadata }];
+      keyFiguresData = [...keyFiguresData, { id: keyFigure.id, data, metadata, endpoint }];
       
       delay += rateDelay;
     }

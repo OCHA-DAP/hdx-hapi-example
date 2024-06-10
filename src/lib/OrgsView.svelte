@@ -9,6 +9,7 @@
 	export let id;
 	export let data;
 	export let metadata;
+  export let endpoint;
   export let iso3;
 
 	let totalValue;
@@ -115,7 +116,7 @@
     
     <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
       {#if sidebarWidth>0}
-        <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata[0]} />
+        <KeyFigure title={'Humanitarian Organizations Present'} value={totalValue} metadata={metadata[0]} endpoint={endpoint} />
         <hr>
 
         {#if chartData.length>0}
@@ -128,7 +129,7 @@
           <h3 class='chart-title'>Humanitarian Organizations by Type</h3>
           <div class='ranking-container'>
             <Bar data={orgTypeData} width={sidebarWidth} valueFormat={d3.format('.0%')} />
-            <Source metadata={metadata[0]} align={'right'} />
+            <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
           </div>
         {/if}
       {/if}

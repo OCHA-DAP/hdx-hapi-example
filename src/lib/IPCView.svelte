@@ -9,6 +9,7 @@
 	export let id;
 	export let data;
 	export let metadata;
+  export let endpoint;
   export let iso3;
 
   let mapData = [];
@@ -107,7 +108,7 @@
         {#if chartData.length>0}
           <h3 class='chart-title'>Population in IPC Phase 3+ Over Time</h3>
           <Line data={chartData} width={sidebarWidth} height={250} />
-          <Source metadata={metadata[0]} align={'right'} />
+          <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
         {/if}
       {/if}
     </div>

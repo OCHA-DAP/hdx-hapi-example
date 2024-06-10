@@ -10,6 +10,7 @@
 	export let seriesType = 'sparkline';
 	export let value = 0;
 	export let series = undefined;
+	export let endpoint = undefined;
 	export let metadata = {};
 
 
@@ -35,7 +36,7 @@
 			{/if}
 		{/if}
 	</div>
-	<Source {metadata} />
+	<Source {metadata} {endpoint} />
 </div>
 
 

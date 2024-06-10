@@ -9,6 +9,7 @@
 	export let id;
 	export let data;
 	export let metadata;
+  export let endpoint;
   export let iso3;
 
   let mapData = [];
@@ -132,12 +133,12 @@
           <div class='grid-container key-figure-container'>
             {#if totalValue1>0}
               <div class='col-6'>
-                <KeyFigure title={'Internally Displaced People'} value={totalValue1} metadata={metadata[0]} valueFormat={'.3s'} />
+                <KeyFigure title={'Internally Displaced People'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
               </div>
             {/if}
             {#if totalValue2>0}
               <div class='col-6'>
-                <KeyFigure title={'Refugees'} value={totalValue2} metadata={metadata[0]} />
+                <KeyFigure title={'Refugees'} value={totalValue2} metadata={metadata[0]} endpoint={endpoint} />
               </div>
             {/if}
           </div>
@@ -148,7 +149,7 @@
         <div class='ranking-container'>
           {#if chartData.length>0}
             <Bar data={chartData} width={sidebarWidth} />
-            <Source metadata={metadata[0]} align={'right'} />
+            <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
           {/if}
         </div>
       {/if}

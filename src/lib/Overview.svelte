@@ -8,49 +8,53 @@
 
   let keyFigureData = [];
 
-	function formatData(keyfigures) {
+	function formatData(population, hno, conflict, risk, funding) {
     //population
-    if (keyfigures[0].data !== null) {
-      const popData = keyfigures[0].data[0];
-      if (popData) updateData({title: 'Population', value: +popData.population, valueFormat:'.3s', metadata: keyfigures[0].metadata[0]}, 0);
+    if (population.data !== null) {
+      const popData = population.data[0];
+      if (popData) updateData({title: 'Population', value: +popData.population, valueFormat:'.3s', metadata: population.metadata[0]}, 0);
     }
     
     //hno
-    if (keyfigures[1].data !== null) {
-      const hno = keyfigures[1].data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
-      if (hno.length>0) updateData({title: 'People in Need', value: +hno[0].population, metadata: keyfigures[1].metadata[0]}, 1);
+    if (hno.data !== null) {
+      const pin = hno.data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
+      if (pin.length>0) updateData({title: 'People in Need', value: +pin[0].population, metadata: hno.metadata[0]}, 1);
 
-      const rea = keyfigures[1].data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
-      if (rea.length>0) updateData({title: 'People Reached', value: +rea[0].population, metadata: keyfigures[1].metadata[0]}, 2);
+      const rea = hno.data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
+      if (rea.length>0) updateData({title: 'People Reached', value: +rea[0].population, metadata: hno.metadata[0]}, 2);
     }
 
     //conflict
-    let conflictData = keyfigures[2].data;
-    if (conflictData) {
-      let totalEvents = 0;
-      conflictData.forEach(d => {
-        if (d!==undefined) {
-          const eventDate = new Date(d.reference_period_end);
-          if (eventDate.getFullYear() === 2024) {
-            totalEvents += +d.events;
+    if (conflict.data !== null) {
+      let events = conflict.data;
+      if (events) {
+        let totalEvents = 0;
+        events.forEach(d => {
+          if (d!==undefined) {
+            const eventDate = new Date(d.reference_period_end);
+            if (eventDate.getFullYear() === 2024) {
+              totalEvents += +d.events;
+            }
           }
-        }
-      });
-      if (conflictData.length>0) updateData({title: 'Civilian Targeted Conflict Events 2024', value: totalEvents, metadata: keyfigures[2].metadata[0]}, 3);
+        });
+        if (events.length>0) updateData({title: 'Civilian Targeted Conflict Events 2024', value: totalEvents, metadata: conflict.metadata[0]}, 3);
+      }
     }
 
     //risk
-    const riskData = keyfigures[3].data[0];
-    if (riskData) updateData({title: 'Overall Risk', value: riskData.overall_risk, metadata: keyfigures[3].metadata[0]}, 4);
+    if (risk.data !== null) {
+      const riskData = risk.data[0];
+      if (riskData) updateData({title: 'Overall Risk', value: riskData.overall_risk, metadata: risk.metadata[0]}, 4);
+    }
 
     //funding
-    if (keyfigures[4].data !== null) {
-      const funding = keyfigures[4].data.filter(row => row.appeal_code === `H${iso3}24`);
-      if (funding[0]) {
-        const requirement = +funding[0].requirements_usd;
-        const fundedPercent = funding[0].funding_pct / 100;
+    if (funding.data !== null) {
+      const fundingData = funding.data.filter(row => row.appeal_code === `H${iso3}24`);
+      if (fundingData[0]) {
+        const requirement = +fundingData[0].requirements_usd;
+        const fundedPercent = fundingData[0].funding_pct / 100;
         const pieData = [1-fundedPercent, fundedPercent];
-        updateData({title: funding[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: keyfigures[4].metadata[0]}, 5);
+        updateData({title: fundingData[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: funding.metadata[0]}, 5);
       }
     }
   }
@@ -60,7 +64,7 @@
   }
 
 	onMount(() => {
-    if (data && data.length>0) formatData(data);
+    if (data && data.length>0) formatData(data[0], data[1], data[2], data[3], data[4]);
 	})
 </script>
 
