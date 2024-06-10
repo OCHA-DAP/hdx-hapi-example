@@ -190,6 +190,32 @@ select {
     }
   }
 }
+.map-legend {
+  background-color: rgba(255, 255, 255, 0.8);
+  bottom: 15px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 13px;
+  height: 165px;
+  padding: 15px 20px;
+  position: absolute;
+  right: 15px;
+  width: 150px;
+  > svg {
+    height: 98px;
+  }
+  .legend-title {
+    line-height: 16px;
+  }
+  .no-data-key {
+    rect {
+      fill: #CCC;
+    }
+    text {
+      transform: translate(25px, 12.5px);
+    }
+  }
+}
+
 .stat {
   font-family: 'Gotham-Light', sans-serif;
   font-size: 29px;
@@ -216,32 +242,26 @@ p.no-data-msg {
 .chart-title {
   margin-top: 15px;
 }
-
-.map-legend {
-  background-color: rgba(255, 255, 255, 0.8);
-  bottom: 15px;
-  font-family: 'Source Sans Pro', sans-serif;
-  font-size: 13px;
-  height: 165px;
-  padding: 15px 20px;
+.chart-tooltip {
+  background-color: #FFF;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,0,0,.3);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 18px;
+  opacity: 0;
+  padding: 8px;
+  pointer-events: none;
   position: absolute;
-  right: 15px;
-  width: 150px;
-  > svg {
-    height: 98px;
-  }
-  .legend-title {
-    line-height: 16px;
-  }
-  .no-data-key {
-    rect {
-      fill: #CCC;
-    }
-    text {
-      transform: translate(25px, 12.5px);
-    }
+  width: 75px;
+  z-index: 3;
+  .date {
+    color: #888;
   }
 }
+
+
 
 .main-content {
   min-height: 620px;

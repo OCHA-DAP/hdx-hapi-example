@@ -221,7 +221,7 @@
         {/each}
       </select>
     </div> 
-    <p>This dashboard was created to show a selection of key figures, charts and a map for priority countries in the <a href='https://hdx-hapi.readthedocs.io/en/latest/' target='_blank'>HDX Humanitarian API</a></p>
+    <p>This dashboard was created to demonstrate the <a href='https://hdx-hapi.readthedocs.io/en/latest/' target='_blank'>HDX Humanitarian API</a> by showing a selection of key figures, charts and maps generated from data provided by the API.</p>
   </header>
 
   <h2 class='header'>Country Overview</h2>

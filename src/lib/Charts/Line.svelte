@@ -6,42 +6,44 @@
 	export let height = 50;
 	export let width = 75;
 
-	let gy, gx, gyg, yAxis, yAxisGrid, xAxis, tooltip;
+	let gy, gx, gyg, tooltip;
 
 	//sort data by date
 	data.sort((a, b) => a.date - b.date);
 
 	//console.log(data)
 
+  const margin = { top: 10, right: 10, bottom: 50, left: 50 };
+  const innerWidth = width - margin.left;
+  const innerHeight = height - margin.top - margin.bottom;
+
 	const xAccessor = (d) => d.date;
 	const yAccessor = (d) => d.value;
 
 	let xScale  = d3.scaleTime()
     .domain(d3.extent(data, xAccessor))
-    .range([0, width-50]);
+    .range([0, innerWidth]);
 
   let yScale = d3.scaleLinear()
   	.domain([0, d3.max(data, yAccessor)])
-  	.range([height-50, 0]);
+  	.range([innerHeight, 0]);
 
-  xAxis = g => g
-  	.attr('transform', `translate(50, ${height-40})`)
+  const xAxis = g => g
+  	.attr('transform', `translate(${margin.left - 5}, ${innerHeight + margin.top + 5})`)
     .call(d3.axisBottom(xScale).ticks(8).tickSizeOuter(0))
     .call(g => g.selectAll('.domain').remove())
-    .call(g => g.selectAll('.tick text').attr('fill', '#6d6d6d'))
-    .call(g => g.selectAll('.tick text').attr('font-size', '11px'))
+    .call(g => g.selectAll('.tick text').attr('fill', '#6d6d6d').attr('font-size', '11px'))
     .call(g => g.selectAll('.tick line').attr('stroke', 'none'));
 
-  yAxis = g => g
-    .attr('transform', `translate(35, -8)`)
+  const yAxis = g => g
+    .attr('transform', `translate(35, ${margin.top - 8})`)
     .call(d3.axisLeft(yScale).ticks(5).tickSizeOuter(0).tickFormat(d3.format('.2s')))
     .call(g => g.selectAll('.domain').remove())
-    .call(g => g.selectAll('.tick text').attr('fill', '#6d6d6d'))
-    .call(g => g.selectAll('.tick text').attr('font-size', '11px'))
+    .call(g => g.selectAll('.tick text').attr('fill', '#6d6d6d').attr('font-size', '11px'))
     .call(g => g.selectAll('.tick line').attr('stroke', 'none'));
 
-  yAxisGrid = g => g
-    .attr('transform', `translate(0, 0)`)
+  const yAxisGrid = g => g
+    .attr('transform', `translate(0, ${margin.top})`)
     .call(d3.axisLeft(yScale).ticks(5).tickSizeOuter(0).tickSize(-width).tickFormat(''))
     .call(g => g.selectAll('.domain').remove())
     .call(g => g.selectAll('line').attr('stroke', '#EFEFEF'))
@@ -49,8 +51,21 @@
   let line = d3.line()
 	  .x((d) => xScale(xAccessor(d)))
 		.y((d) => yScale(yAccessor(d)))
-	  //.curve(d3.curveBasis);
 
+
+	//chart mouse events
+	function mouseover() {
+		tooltip.style('opacity', 1);
+	}
+	function mousemove(event, d) {
+		let tipSize = tooltip.node().getBoundingClientRect();
+		tooltip.html(`<div class='date'>${d3.timeFormat('%b %-d, %Y')(xAccessor(d))}</div>${d3.format('.2s')(yAccessor(d))}`)
+			.style('left', `${event.layerX - tipSize.width/2}px`)
+			.style('top',`${event.layerY - tipSize.height}px`);
+	}
+	function mouseout() {
+		tooltip.style('opacity', 0);
+	}
 
 	onMount(async () => {
 		d3.select(gx).call(xAxis);
@@ -59,65 +74,44 @@
 
   	await tick();
 
-		// // Create a tooltip element
-		// tooltip = d3.select('.tooltip');
-
-		// //define circle events
-  	// const svg = d3.select('svg');
-		// svg.selectAll('circle.dot')
-		// 	.on('mouseover', (e, d) => {
-		// 		tooltip.style('opacity', 1);
-		// 		d3.select(e.currentTarget).attr('opacity', 1); // Enlarge the circle on hover
-		// 	})
-		// 	.on('mousemove', (e, d) => {
-		// 		tooltip.html(`Date: ${d3.timeFormat('%B %d, %Y')(xAccessor(d))}<br>Value: ${yAccessor(d)}`)
-		// 			.style('left', (e.pageX + 10) + 'px')
-		// 			.style('top', (e.pageY - 28) + 'px');
-		// 	})
-		// 	.on('mouseout', (e, d) => {
-		// 		tooltip.style('opacity', 0);
-		// 		d3.select(e.currentTarget).attr('opacity', 0); // Reset the circle size
-		// 	});
+		//create tooltip
+		tooltip = d3.select('.chart-tooltip');
 	});
 </script>
 
 <div class='line'>
 	<svg {width} {height}>
   	<g bind:this={gyg} />
-		<path transform='translate(50)' d={line(data)} />
+		<path transform={`translate(${margin.left - 5}, ${margin.top})`} d={line(data)} />
 		<g bind:this={gx} />
 		<g bind:this={gy} />
 		
-<!-- 		{#each data as d, i}
-			<circle class='dot'
-				cx={xScale(xAccessor(d)) + 50}
-				cy={yScale(yAccessor(d))}
+		{#each data as d, i}
+			<circle class='dot' 
+				on:mouseover={mouseover}
+				on:mousemove={(event) => mousemove(event, d)}
+				on:mouseout={mouseout}
+				cx={xScale(xAccessor(d)) + margin.left - 5}
+				cy={yScale(yAccessor(d)) + margin.top}
 				r={3}
 			/>
-		{/each} -->
+		{/each}
 	</svg>
-
-	<div class='tooltip'></div>
+<div class='chart-tooltip'></div>
 </div>
 
 
+
 <style lang='scss'>
+	.line {
+		position: relative;
+	}
 	path {
 		fill: none;
 		stroke: #007CE0;
 		stroke-width: 1px;
 	}
-	.tooltip {
-		position: absolute;
-		background: lightgray;
-		padding: 5px;
-		border-radius: 5px;
-		pointer-events: none;
-		opacity: 0;
-		transition: opacity 0.2s ease-in-out;
-	}
 	circle {
 		fill: #007CE0;
-		//opacity: 0;
 	}
 </style>
