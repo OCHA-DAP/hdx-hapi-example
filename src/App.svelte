@@ -140,7 +140,7 @@
       const metadataEndpoint = generateMetadataEndpoint(data[0].resource_hdx_id);
       const metadata = await fetchDataWithRateLimit(metadataEndpoint, delay + 100);
 
-      console.log('---endpoint', endpoint)
+      console.log('---view endpoint', endpoint)
       viewsData = [...viewsData, { id: view.id, data, metadata, endpoint }];
 
       delay += rateDelay;
@@ -174,7 +174,8 @@
       const metadataEndpoint = generateMetadataEndpoint(data[0].resource_hdx_id);
       const metadata = await fetchDataWithRateLimit(metadataEndpoint, delay + 100);
 
-      keyFiguresData = [...keyFiguresData, { id: keyFigure.id, data, metadata, endpoint }];
+      console.log('---keyfig endpoint', endpoint)
+      keyFiguresData = [...keyFiguresData, { id: keyFigure.id, data, metadata }];
       
       delay += rateDelay;
     }

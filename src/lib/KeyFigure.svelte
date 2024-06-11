@@ -10,8 +10,9 @@
 	export let seriesType = 'sparkline';
 	export let value = 0;
 	export let series = undefined;
-	export let endpoint = undefined;
-	export let metadata = {};
+	export let metadata;
+
+	//console.log('endpoint in keyfig', title, test)
 
 
 	let dateFormat = d3.utcFormat("%b %d, %Y");
@@ -36,7 +37,7 @@
 			{/if}
 		{/if}
 	</div>
-	<Source {metadata} {endpoint} />
+	<Source metadata={metadata} />
 </div>
 
 
