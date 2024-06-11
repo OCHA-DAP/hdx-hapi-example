@@ -11,9 +11,7 @@
 	export let value = 0;
 	export let series = undefined;
 	export let metadata;
-
-	//console.log('endpoint in keyfig', title, test)
-
+	export let endpoint;
 
 	let dateFormat = d3.utcFormat("%b %d, %Y");
 	let keyFigInner, containerWidth, chartWidth, chartHeight;
@@ -37,7 +35,7 @@
 			{/if}
 		{/if}
 	</div>
-	<Source metadata={metadata} />
+	<Source metadata={metadata} endpoint={endpoint} />
 </div>
 
 

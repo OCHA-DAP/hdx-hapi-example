@@ -12,16 +12,16 @@
     //population
     if (population.data !== null) {
       const popData = population.data[0];
-      if (popData) updateData({title: 'Population', value: +popData.population, valueFormat:'.3s', metadata: population.metadata[0]}, 0);
+      if (popData) updateData({title: 'Population', value: +popData.population, valueFormat:'.3s', metadata: population.metadata[0], endpoint: population.endpoint}, 0);
     }
     
     //hno
     if (hno.data !== null) {
       const pin = hno.data.filter(row => row.population_group === 'all' && row.population_status === 'INN');
-      if (pin.length>0) updateData({title: 'People in Need', value: +pin[0].population, metadata: hno.metadata[0]}, 1);
+      if (pin.length>0) updateData({title: 'People in Need', value: +pin[0].population, metadata: hno.metadata[0], endpoint: hno.endpoint}, 1);
 
       const rea = hno.data.filter(row => row.population_group === 'all' && row.population_status === 'REA');
-      if (rea.length>0) updateData({title: 'People Reached', value: +rea[0].population, metadata: hno.metadata[0]}, 2);
+      if (rea.length>0) updateData({title: 'People Reached', value: +rea[0].population, metadata: hno.metadata[0], endpoint: hno.endpoint}, 2);
     }
 
     //conflict
@@ -37,14 +37,14 @@
             }
           }
         });
-        if (events.length>0) updateData({title: 'Civilian Targeted Conflict Events 2024', value: totalEvents, metadata: conflict.metadata[0]}, 3);
+        if (events.length>0) updateData({title: 'Civilian Targeted Conflict Events 2024', value: totalEvents, metadata: conflict.metadata[0], endpoint: conflict.endpoint}, 3);
       }
     }
 
     //risk
     if (risk.data !== null) {
       const riskData = risk.data[0];
-      if (riskData) updateData({title: 'Overall Risk', value: riskData.overall_risk, metadata: risk.metadata[0]}, 4);
+      if (riskData) updateData({title: 'Overall Risk', value: riskData.overall_risk, metadata: risk.metadata[0], endpoint: risk.endpoint}, 4);
     }
 
     //funding
@@ -54,7 +54,7 @@
         const requirement = +fundingData[0].requirements_usd;
         const fundedPercent = fundingData[0].funding_pct / 100;
         const pieData = [1-fundedPercent, fundedPercent];
-        updateData({title: fundingData[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: funding.metadata[0]}, 5);
+        updateData({title: fundingData[0].appeal_type+' requirement', value: requirement, valueFormat:'$.2s', series: pieData, seriesType: 'pie', metadata: funding.metadata[0], endpoint: funding.endpoint}, 5);
       }
     }
   }
