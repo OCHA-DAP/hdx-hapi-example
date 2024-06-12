@@ -56,7 +56,8 @@
 			padding-right: 10px;
 		}
 	}
-	.col-2 {
+	.col-2,
+	.col-6 {
 		.key-figure {
 			h3 {
  				min-height: 42px;
