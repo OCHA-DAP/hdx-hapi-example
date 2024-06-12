@@ -63,7 +63,7 @@
 	}
 
 	onMount(() => {
-		let mapHeight = 600;
+		let mapHeight = isMobile() ? 400 : 600;
 		mapContainer.style.height = mapHeight + 'px';
 
 		//init map
@@ -77,6 +77,11 @@
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
 	     .addControl(new mapboxgl.AttributionControl(), 'bottom-left');
+
+	  if (isMobile()) {
+	  	map.scrollZoom.disable();
+	  	//map.dragPan.disable();
+	  }
 
 	  tooltip = new mapboxgl.Popup({
 			closeButton: false,
