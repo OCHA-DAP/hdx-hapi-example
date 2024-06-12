@@ -209,27 +209,41 @@
 
     //enable dropdown once page is loaded
     d3.select(".country-select").node().disabled = false;
+  }  
+
+
+  function initTracking() {
+    //initialize mixpanel
+    var MIXPANEL_TOKEN = window.location.hostname=='ocha-dap.github.io'? '5cbf12bc9984628fb2c55a49daf32e74' : '99035923ee0a67880e6c05ab92b6cbc0';
+    mixpanel.init(MIXPANEL_TOKEN);
+    mixpanel.track('page view', {
+      'page title': document.title,
+      'page type': 'datavis'
+    });
   }
 
   onMount(async () => {
     abortController = new AbortController();
     loadData();
+    initTracking()
   });
 </script>
 
 
 <main>
   <header>
-    <div class='select-wrapper'>
-      <select class='country-select' bind:value={selectedCountry} on:change={onCountryChange}>
-        {#each countries as country}
-          <option value={country.code}>{country.name}</option>
-        {/each}
-      </select>
-    </div> 
+    <a href='https://hdx-hapi.readthedocs.io/en/latest/' target='_blank'><img src='logo_hdx_hapi.png' alt='HDX HAPI' /></a>
     <p>This dashboard was created to demonstrate the <a href='https://hdx-hapi.readthedocs.io/en/latest/' target='_blank'>HDX Humanitarian API</a> by showing a selection of key figures, charts and maps generated from data provided by the API.</p>
   </header>
-
+  
+  <div class='select-wrapper'>
+    <select class='country-select' bind:value={selectedCountry} on:change={onCountryChange}>
+      {#each countries as country}
+        <option value={country.code}>{country.name}</option>
+      {/each}
+    </select>
+  </div>
+  
   <h2 class='header'>Country Overview</h2>
   
     {#if overviewLoading}
@@ -268,7 +282,17 @@
 
 <style lang='scss'>
   header {
-    margin-top: 15px;
+    display: flex;
+    flex-flow: row;
+    margin-top: 20px;
+  }
+  header img {
+    height: 30px;
+    margin-right: 30px;
+  }
+  p {
+    margin-top: 0;
+    width: 60%;
   }
   h2.details {
     margin-top: 5px;
@@ -281,5 +305,20 @@
   }
   .tab-content {
     min-height: 621px;
+  }
+
+  @media (max-width: 768px) {
+    header {
+      flex-flow: column;
+      img {
+        height: 20px;
+      }
+    }
+    p {
+      width: 100%;
+    }
+    .select-wrapper {
+      margin-left: 20px;
+    }
   }
 </style>
