@@ -56,6 +56,11 @@
     updateFeatures();
 	}
 
+	export const isMobile = () => {
+    const userAgentCheck = /Mobi|Android/i.test(navigator.userAgent);
+    const screenSizeCheck = window.matchMedia("(max-width: 767px)").matches;
+    return userAgentCheck || screenSizeCheck;
+	}
 
 	onMount(() => {
 		let mapHeight = 600;
@@ -277,9 +282,10 @@
 
 	function zoomToBounds() {
 		//zoom map to bounds
+		const pad = isMobile() ? {top: 20, right: 20, bottom: 50, left: 20} : {top: 50, right: 50, bottom: 125, left: 50};
 		if (currentFeatures !== undefined) {
 			let bbox = turf.bbox(currentFeatures);
-			map.fitBounds(bbox, {padding: {top: 50, right: 50, bottom: 125, left: 50}, duration: 100});
+			map.fitBounds(bbox, {padding: pad, duration: 100});
 		}
 	}
 
@@ -341,8 +347,4 @@
 </div>
 
 <style lang='scss'>
-	.right-content {
-		margin-bottom: 20px;
-		position: relative;
-	}
 </style>

@@ -20,7 +20,7 @@
 <div class={`small ${align}`}>
 	{updatedDate} | {provider} | <a href={metadata.dataset_hdx_link} title='Go to dataset' target='_blank'>DATA</a>
 	{#if endpoint!==undefined}
-		| <button on:click={() => copyQuery(endpoint)} title='Copy API Query'>API</button>
+		| <button on:click={() => copyQuery(endpoint)} title='Copy API request'>Copy API request <i class='humanitarianicons-Copy'/></button>
 	{/if}
 </div>
 
@@ -36,5 +36,10 @@
   	font-family: 'Source Sans Pro', sans-serif;
   	font-size: 12px;
   	padding: 0;
+	}
+	@media (max-width: 768px) {
+		button {
+	  	font-size: 12px;
+	  }
 	}
 </style>

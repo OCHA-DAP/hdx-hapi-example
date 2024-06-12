@@ -45,8 +45,13 @@
     grid-template-columns: repeat(2, 1fr);
     grid-column-gap: 10px;
     grid-row-gap: 0;
+    max-width: none;
   }
-  .col-2,
+  .col-2 {
+    grid-column: span 1;
+    width: 100%;
+  }
+  //.col-2,
   .col-3,
   .col-4,
   .col-5,

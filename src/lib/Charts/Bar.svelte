@@ -13,19 +13,28 @@
 	export let textPadding = 8;
 
 	let chartWidth, height, xScale, yScale;
-
 	$: chartData = data.sort((a, b) => b.value - a.value).slice(0,10);
+	//$: width = map.isMobile() ? width - 40 : width;
+
 
 	const xAccessor = (d) => d.value;
 	const yAccessor = (d) => d.name;
 
 	$: chartData && init()
 
-	function init() {
-		//remove any emoty rows
+	function isMobile() {
+    const userAgentCheck = /Mobi|Android/i.test(navigator.userAgent);
+    const screenSizeCheck = window.matchMedia("(max-width: 767px)").matches;
+    return userAgentCheck || screenSizeCheck;
+	}
+
+	function init() {console.log('ismobile',isMobile())
+		//remove any empty rows
 		chartData = chartData.filter(row => row.name !== '');
 
 		chartWidth = width - nameWidth - labelWidth;
+		if (isMobile()) chartWidth = chartWidth - 20;
+		
 		height = chartData.length * (barHeight+barPadding);
 
 		xScale = d3.scaleLinear()

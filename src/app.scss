@@ -196,6 +196,7 @@ select {
   font-family: 'Source Sans Pro', sans-serif;
   font-size: 13px;
   height: 165px;
+  overflow: hidden;
   padding: 15px 20px;
   position: absolute;
   right: 15px;
@@ -262,8 +263,52 @@ p.no-data-msg {
 }
 
 
-
 .main-content {
   min-height: 620px;
 }
+.right-content {
+  margin-bottom: 20px;
+  position: relative;
+}
 
+
+
+@media (max-width: 768px) {
+  body {
+    width: 100%;
+  }
+  header {
+    padding: 0 20px;
+    width: auto;
+  }
+  .sidebar {
+    padding: 20px;
+  }
+  .content > div {
+    margin: 0;
+  }
+  .tabs {
+    flex-flow: column;
+  }
+  .tab {
+    min-height: 27px;
+  }
+  .tab:not(:last-child):after {
+    content: "";
+  }
+  .tab.active > a, .tab > a:hover {
+    padding-bottom: 0;
+  }
+  .right-content {
+    margin-bottom: 0;
+  }
+  .tabs {
+    margin-bottom: 20px;
+  }
+  .main-content {
+    min-height: unset;
+  }
+  .key-figure-container {
+    padding-right: 15px;
+  }
+}

@@ -24,11 +24,11 @@
 
 @font-face {
   font-family: 'Humanitarian-Icons-v02';
-  src:  url('assets/fonts/Humanitarian-Icons-v02.eot?d5h7ar');
-  src:  url('assets/fonts/Humanitarian-Icons-v02.eot?d5h7ar#iefix') format('embedded-opentype'),
-    url('assets/fonts/Humanitarian-Icons-v02.ttf?d5h7ar') format('truetype'),
-    url('assets/fonts/Humanitarian-Icons-v02.woff?d5h7ar') format('woff'),
-    url('assets/fonts/Humanitarian-Icons-v02.svg?d5h7ar#Humanitarian-Icons-v02') format('svg');
+  src:  url('assets/fonts/Humanitarian-Icons-v02.eot?xkh8nt');
+  src:  url('assets/fonts/Humanitarian-Icons-v02.eot?xkh8nt#iefix') format('embedded-opentype'),
+    url('assets/fonts/Humanitarian-Icons-v02.ttf?xkh8nt') format('truetype'),
+    url('assets/fonts/Humanitarian-Icons-v02.woff?xkh8nt') format('woff'),
+    url('assets/fonts/Humanitarian-Icons-v02.svg?xkh8nt#Humanitarian-Icons-v02') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -37,7 +37,7 @@
 [class^="humanitarianicons-"], [class*=" humanitarianicons-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'Humanitarian-Icons-v02' !important;
-  speak: none;
+  speak: never;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
