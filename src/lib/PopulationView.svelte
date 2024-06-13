@@ -111,7 +111,7 @@
 
 	    	{#if chartData.length>0}	 
 
-		      <Pyramid data={chartData} title={'Population Demographics'} width={sidebarWidth-40} />
+		      <Pyramid data={chartData} title={'Population Demographics'} width={sidebarWidth-20} />
 		      <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
 
 		    {:else}

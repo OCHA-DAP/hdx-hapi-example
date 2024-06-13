@@ -295,9 +295,9 @@
       img {
         height: 20px;
       }
-    }
-    p {
-      width: 100%;
+      p {
+        width: 100%;
+      }
     }
     .select-wrapper {
       margin-left: 20px;
