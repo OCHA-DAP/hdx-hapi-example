@@ -21,13 +21,14 @@
 
 	let popColorRange = ['#D5EFE6','#C5E1DB','#91C4BB','#81AAA4','#6B8883'];
 	let orgsColorRange = ['#D1E3EA','#BBD1E6','#ADBCE3','#B2B3E0','#A99BC6'];
-	let hnoColorRange = ['#ffcdb2','#f2b8aa','#e4989c','#b87e8b','#925b7a'];//['#CCE5F9','#99C4E7','#66A4D6','#3383C4','#0063B3'];
+	let hnoColorRange = ['#ffcdb2','#f2b8aa','#e4989c','#b87e8b','#925b7a'];
 	let ipcColorRange = ['#F6D2AA', '#F2BB7F', '#EEA555', '#EA8E2A', '#E67800'];
 	let colorRange = [];
 	
 	let tooltip = d3.select('.tooltip');
 	let numFormat = d3.format(',');
 	let shortFormat = d3.format('.2s');
+	let minZoom = 3;
 
 	//map humanitarian icons to sector clusters
   let humIcons = {
@@ -66,22 +67,20 @@
 		let mapHeight = isMobile() ? 400 : 600;
 		mapContainer.style.height = mapHeight + 'px';
 
+    initializeMap();
+	});
+
+	function initializeMap() {
 		//init map
 	  map = new mapboxgl.Map({
 	    container: mapContainer,
 	    style: 'mapbox://styles/humdata/cl3lpk27k001k15msafr9714b',
-	    //center: center,
 	    zoom: zoom,
-	    minZoom: 3
+	    minZoom: minZoom
 	  });
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
 	     .addControl(new mapboxgl.AttributionControl(), 'bottom-left');
-
-	  if (isMobile()) {
-	  	map.scrollZoom.disable();
-	  	//map.dragPan.disable();
-	  }
 
 	  tooltip = new mapboxgl.Popup({
 			closeButton: false,
@@ -93,28 +92,10 @@
 	    console.log('Map loaded')
 	  	loadFeatures();
 	  });
-	});
-
-
-	async function get_geojson(geojson_url) {
-    console.log('Getting ITOS geojson...');
-    const response = await fetch(geojson_url);
-    return response.json();
-  }
+	}
 
   function findAdm0Name(props) {
 	  const keysToFind = ['ADM0_EN', 'ADM0_ES', 'ADM0_FR', 'ADM0_PT'];
-
-	  for (let key of keysToFind) {
-	    if (props.hasOwnProperty(key)) {
-	      return props[key];
-	    }
-	  }
-	  return null;
-	}
-
-  function findAdm1Name(props) {
-	  const keysToFind = ['ADM1_EN', 'ADM1_ES', 'ADM1_FR', 'ADM1_PT'];
 
 	  for (let key of keysToFind) {
 	    if (props.hasOwnProperty(key)) {
@@ -156,6 +137,12 @@
     return geojson;
   }
 
+	async function get_geojson(geojson_url) {
+    console.log('Getting ITOS geojson...');
+    const response = await fetch(geojson_url);
+    return response.json();
+  }
+
   function save_geojson(geojson, filename) {
     const file = new Blob([JSON.stringify(geojson)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -180,17 +167,15 @@
 		else 
 			colorRange = popColorRange;
 
-		//for demo, used local copies of geojson
+		//for demo, use local copies of geojson
 		const response = await fetch(`itos-${LOCATION}.geojson`, {
 			body: JSON.stringify()
 		});
 	  const geojson_data = await response.json();
 	  currentFeatures = match_geojson(geojson_data, data);
-    //console.log('loaded features',currentFeatures)
 
   	const max = d3.max(currentFeatures.features, function(d) { return +d.properties.indicator_value; });
   	colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
-
 
 	  currentFeatures.features.forEach(function(f) {
 	    let prop = f.properties;
@@ -212,7 +197,7 @@
 	    }
 	  }, 'Countries 2-4');
 
-	   //mouse events
+	  //mouse events
 	  map.on('mouseenter', 'indicator-layer', onMouseEnter);
 	  map.on('mouseleave', 'indicator-layer', onMouseLeave);
 	  map.on('mousemove', 'indicator-layer', function(e) {
@@ -296,34 +281,38 @@
 
 
 	function createMapLegend() {
-		let legendTitle = THEME;
-		if (THEME==='population') legendTitle = 'Population';
-		if (THEME==='orgs') legendTitle = 'Number of Organizations';
-		if (THEME==='hno') legendTitle = 'Number of People in Need';
-		if (THEME==='ipc') legendTitle = 'Population in IPC Phase 3+';
+		const legendTitle = getLegendTitle();
 		d3.select('.legend-title').text(legendTitle);
 
-	  var svg = d3.select(mapLegend);
+	  const svg = d3.select(mapLegend);
 
-		var colorLegend = legendColor()
+		const colorLegend = legendColor()
 	    .labelFormat(d3.format('.2s'))
 	    .scale(colorScale);
 
-		d3.select('.legend-body')
-		  .call(colorLegend);
+		d3.select('.legend-body').call(colorLegend);
 
-		//no data
-	  var nodata = svg.append('svg')
-	    .attr('class', 'no-data-key');
-
-	  nodata.append('rect')
-	    .attr('width', 15)
-	    .attr('height', 15);
-
-	  nodata.append('text')
-	    .attr('class', 'label')
-	    .text('No Data');
+		//no data key
+	  const nodata = svg.append('svg').attr('class', 'no-data-key');
+	  nodata.append('rect').attr('width', 15).attr('height', 15);
+	  nodata.append('text').attr('class', 'label').text('No Data');
 	}
+
+
+  function getLegendTitle() {
+    switch (THEME) {
+      case 'population':
+        return 'Population';
+      case 'orgs':
+        return 'Number of Organizations';
+      case 'hno':
+        return 'Number of People in Need';
+      case 'ipc':
+        return 'Population in IPC Phase 3+';
+      default:
+        return THEME;
+    }
+  }
 
 	//mouse event/leave events
 	function onMouseEnter(e) {
@@ -336,7 +325,9 @@
 	}
 
 	onDestroy(() => {
-	  map.remove();
+		if (map) {
+	  	map.remove();
+		}
 	});
 </script>
 

@@ -69,8 +69,6 @@
 
   async function fetchData(endpoint) {
     try {
-      //const query = `${base_url}${endpoint}&location_code=${selectedCountry}&output_format=csv&limit=10000&app_identifier=${app_indentifier}`;
-      //console.log(selectedCountry, endpoint)
       const response = await fetch(`${endpoint}&app_identifier=${app_indentifier}`, { signal: abortController.signal });
       const text = await response.text();
       return new Promise((resolve, reject) => {
@@ -89,26 +87,12 @@
     }
   }
 
-  // async function fetchMetadata(endpoint) {
-  //   try {
-  //     const response = await fetch(`${base_url}${endpoint}&location_code=${selectedCountry}&app_identifier=${app_indentifier}`, { signal: abortController.signal });
-  //     return await response.json(); 
-  //   } catch (error) {
-  //     if (error.name === 'AbortError') {
-  //       console.log('Fetch aborted');
-  //     } else {
-  //       throw error;
-  //     }
-  //   }
-  // }
-
   async function fetchDataWithRateLimit(endpoint, delay) {
     await new Promise(resolve => setTimeout(resolve, delay));
     return fetchData(endpoint);
   }
 
   function generateMetadataEndpoint(hdx_id) {
-    //return `metadata/resource?resource_hdx_id=${hdx_id}&output_format=csv`;
     return `${base_url}metadata/resource?resource_hdx_id=${hdx_id}&output_format=csv&limit=100`;
   }
 
@@ -124,7 +108,6 @@
       //data pagination
       do {
         endpoint = `${base_url}${view.endpoint}&location_code=${selectedCountry}&offset=${offset}&output_format=csv&limit=10000`;
-        //endpoint = `${view.endpoint}&offset=${offset}`;
         fetchedData = await fetchDataWithRateLimit(endpoint, delay);
         data = data.concat(fetchedData);
         offset += 10000;
@@ -158,7 +141,6 @@
 
       //data pagination
       do {
-        //const endpoint = `${keyFigure.endpoint}&offset=${offset}`;
         endpoint = `${base_url}${keyFigure.endpoint}&location_code=${selectedCountry}&offset=${offset}&output_format=csv&limit=10000`;
         fetchedData = await fetchDataWithRateLimit(endpoint, delay);
         data = data.concat(fetchedData);
@@ -290,7 +272,7 @@
     height: 30px;
     margin-right: 30px;
   }
-  p {
+  header p {
     margin-top: 0;
     width: 60%;
   }
