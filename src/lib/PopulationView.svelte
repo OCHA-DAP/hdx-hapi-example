@@ -18,8 +18,6 @@
   let sidebarWidth;
 
 	function formatData(data) {
-    // Custom data processing logic for View 2
-    //return data.filter(item => item.someField > metadata.threshold);
     //format data for pop pyramid chart
     const filteredData = data.filter(row => row.gender !== 'all' && row.age_range !== 'all' && row.gender !== undefined && row.age_range !== undefined);
     const ages = filteredData.reduce((acc, { gender, age_range, population }) => {
@@ -47,30 +45,22 @@
       let totalFemalePopulation = 0;
       let totalPopulation = 0;
 
-      // Iterate through the data to calculate totals
+      //iterate through data to calculate totals
       data.forEach(row => {
-        if (row.gender === 'm') {
-          totalMalePopulation += +row.population;
-        } 
-        else if (row.gender === 'f') {
-          totalFemalePopulation += +row.population;
-        } 
-        else if (row.gender === 'all') {
-          totalPopulation += +row.population;
-        } 
+        if (row.gender === 'm') totalMalePopulation += +row.population;
+        else if (row.gender === 'f') totalFemalePopulation += +row.population;
+        else if (row.gender === 'all') totalPopulation += +row.population;
       });
-      let fPercent = totalFemalePopulation/totalPopulation;
-      let mPercent = totalMalePopulation/totalPopulation;
+      const fPercent = totalFemalePopulation/totalPopulation;
+      const mPercent = totalMalePopulation/totalPopulation;
       if (fPercent>0) keyFigures.push({title: 'Female Population', value: d3.format('.0%')(fPercent)});
       if (mPercent>0) keyFigures.push({title: 'Male Population', value: d3.format('.0%')(mPercent)});
 
       //if no gender breakdown, show total population
-	    if (keyFigures.length<1) {
-	      keyFigures.push({title: 'Population', value: d3.format('.3s')(totalPopulation)});
-	    }
+	    if (keyFigures.length<1) keyFigures.push({title: 'Population', value: d3.format('.3s')(totalPopulation)});
     }
 
-    //get population per adm area for map
+    //aggregate population per adm area for map
     let popByAdm = d3.rollup(
       data,
       v => {
@@ -84,20 +74,15 @@
     );
 
     //convert rollup result to array
-    let popByAdmArray = Array.from(popByAdm, ([admin1_name, values]) => {
-      if (admin1_name !== undefined) {
-        return {
-          admin1_name: admin1_name,
-          admin1_code: values.admin1_code,
-          value: values.population
-        };
-      }
-    }).filter(d => d !== undefined);
-    mapData = popByAdmArray;
+    mapData = Array.from(popByAdm, ([admin1_name, values]) => ({
+      admin1_name,
+      admin1_code: values.admin1_code,
+      value: values.population
+    })).filter(d => d.admin1_name);
   }
 
 	onMount(() => {
-    if (data) formatData(data, metadata);
+    if (data) formatData(data);
 	})
 </script>
 
@@ -146,6 +131,3 @@
   {/if}
 
 </div>
-
-<style lang='scss'>
-</style>

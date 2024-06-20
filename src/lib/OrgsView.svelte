@@ -18,36 +18,31 @@
   let orgTypeData = [];
   let sidebarWidth;
 
-	//$: formattedData = formatData(data, metadata);
 
-	function formatData(data, metadata) {
+	function formatData(data) {
     //format unique orgs by adm1
     const admOrgs = {};
     const allOrgs = new Set();
-    data.forEach(row => {
-      const admin1Code = row.admin1_code;
-      const admin1Name = row.admin1_name;
-      const orgName = row.org_name;
-      const sectorName = row.sector_name;
 
-      if (!admOrgs[admin1Code]) {
-        admOrgs[admin1Code] = {
-          admin1_name: admin1Name,
+    data.forEach(row => {
+      const { admin1_code, admin1_name, org_name, sector_name } = row;
+
+      if (!admOrgs[admin1_code]) {
+        admOrgs[admin1_code] = {
+          admin1_name,
           org_names: new Set(),
           sector_names: new Set(),
         };
       }
 
-      if (orgName) {
-        admOrgs[admin1Code].org_names.add(orgName);
-        allOrgs.add(orgName);
+      if (org_name) {
+        admOrgs[admin1_code].org_names.add(org_name);
+        allOrgs.add(org_name);
       }
-      if (sectorName) {
-        admOrgs[admin1Code].sector_names.add(sectorName);
+      if (sector_name) {
+        admOrgs[admin1_code].sector_names.add(sector_name);
       }
     });
-
-    //console.log('admOrgs',admOrgs)
 
     //convert to array of objects
     const admOrgsArray = {};
@@ -60,34 +55,20 @@
         sector_names: Array.from(details.sector_names),
       };
     }
+    mapData = Object.values(admOrgsArray);
 
     //get num of orgs by sector
-    const sectorCounts = {};
-    data.forEach(row => {
-      const sector = row['sector_name'];
-      const org = row['org_name'];
+    const sectorCounts = data.reduce((acc, { sector_name, org_name }) => {
+      if (!sector_name || !org_name) return acc;
+      if (!acc[sector_name]) acc[sector_name] = new Set();
+      acc[sector_name].add(org_name);
+      return acc;
+    }, {});
 
-      //init sector if doesnt exist
-      if (!sectorCounts[sector]) {
-        sectorCounts[sector] = new Set();
-      }
+    chartData = Object.entries(sectorCounts)
+      .filter(([sector]) => sector !== 'undefined')
+      .map(([name, orgs]) => ({ name, value: orgs.size }));
 
-      //add org to sector set
-      sectorCounts[sector].add(org);
-    });
-
-    //convert to array
-    const sectorCountArray = [];
-    for (const sector in sectorCounts) {
-      if (sector!=='undefined') {
-        sectorCountArray.push({
-          name: sector,
-          value: sectorCounts[sector].size
-        });
-      }
-    }
-    chartData = sectorCountArray;
-    mapData = Object.values(admOrgsArray);
     totalValue = allOrgs.size;
 
     //format data for org type chart
@@ -105,7 +86,7 @@
   }
 
 	onMount(() => {
-    if (data) formatData(data, metadata);
+    if (data) formatData(data);
 	})
 </script>
 

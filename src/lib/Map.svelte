@@ -19,11 +19,12 @@
 	let orgsObject = {};
 	let sectorsObject = {};
 
-	let popColorRange = ['#D5EFE6','#C5E1DB','#91C4BB','#81AAA4','#6B8883'];
-	let orgsColorRange = ['#D1E3EA','#BBD1E6','#ADBCE3','#B2B3E0','#A99BC6'];
-	let hnoColorRange = ['#ffcdb2','#f2b8aa','#e4989c','#b87e8b','#925b7a'];
-	let ipcColorRange = ['#F6D2AA', '#F2BB7F', '#EEA555', '#EA8E2A', '#E67800'];
-	let colorRange = [];
+  const colorRanges = {
+    population: ['#D5EFE6', '#C5E1DB', '#91C4BB', '#81AAA4', '#6B8883'],
+    orgs: ['#D1E3EA', '#BBD1E6', '#ADBCE3', '#B2B3E0', '#A99BC6'],
+    hno: ['#ffcdb2', '#f2b8aa', '#e4989c', '#b87e8b', '#925b7a'],
+    ipc: ['#F6D2AA', '#F2BB7F', '#EEA555', '#EA8E2A', '#E67800']
+  };
 	
 	let tooltip = d3.select('.tooltip');
 	let numFormat = d3.format(',');
@@ -64,9 +65,8 @@
 	}
 
 	onMount(() => {
-		let mapHeight = isMobile() ? 400 : 600;
-		mapContainer.style.height = mapHeight + 'px';
-
+		const mapHeight = isMobile() ? 400 : 600;
+		mapContainer.style.height = `${mapHeight}px`;
     initializeMap();
 	});
 
@@ -75,8 +75,8 @@
 	  map = new mapboxgl.Map({
 	    container: mapContainer,
 	    style: 'mapbox://styles/humdata/cl3lpk27k001k15msafr9714b',
-	    zoom: zoom,
-	    minZoom: minZoom
+      zoom,
+      minZoom
 	  });
 
 	  map.addControl(new mapboxgl.NavigationControl({showCompass: false}))
@@ -94,25 +94,26 @@
 	  });
 	}
 
-  function findAdm0Name(props) {
-	  const keysToFind = ['ADM0_EN', 'ADM0_ES', 'ADM0_FR', 'ADM0_PT'];
-
-	  for (let key of keysToFind) {
-	    if (props.hasOwnProperty(key)) {
-	      return props[key];
-	    }
-	  }
-	  return null;
-	}
+  function findAdmName(props, keys) {
+    for (const key of keys) {
+      if (props.hasOwnProperty(key)) {
+        return props[key];
+      }
+    }
+    return null;
+  }
 
   function match_geojson(geojson, indicator_data) {
     geojson.features.forEach(feature => {
       const props = feature.properties;
       const matched_data = indicator_data.find(item => item.admin1_code === props.ADM1_PCODE);
       if (matched_data) {
-      	props.ADM1_NAME = matched_data.admin1_name;
-        props.indicator_value = matched_data.value;
-        props.indicator_name = THEME;
+        Object.assign(props, {
+      		ADM1_NAME: matched_data.admin1_name,
+        	indicator_value: matched_data.value,
+        	indicator_name: THEME
+        });
+
         if (THEME==='orgs') {
         	orgsObject[props.ADM1_PCODE] = matched_data.org_names;
         	sectorsObject[props.ADM1_PCODE] = matched_data.sector_names;
@@ -124,12 +125,12 @@
         	props.reached = matched_data.reached;
         }
         if (THEME==='ipc') {
-        	props.percentInPhase = matched_data.percentInPhase;
+        	props.population_fraction_in_phase = matched_data.population_fraction_in_phase;
         	props.referencePeriod = matched_data.referencePeriod;
         }
       }
       else {
-      	props.ADM1_NAME = findAdm1Name(props);
+      	props.ADM1_NAME = findAdmName(props, ['ADM1_EN', 'ADM1_ES', 'ADM1_FR', 'ADM1_PT']);
         props.indicator_value = 'NA';
         props.indicator_name = THEME;
       }
@@ -137,49 +138,20 @@
     return geojson;
   }
 
-	async function get_geojson(geojson_url) {
-    console.log('Getting ITOS geojson...');
-    const response = await fetch(geojson_url);
-    return response.json();
-  }
-
-  function save_geojson(geojson, filename) {
-    const file = new Blob([JSON.stringify(geojson)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(file);
-    a.download = filename;
-    a.click();
-    console.log(`GeoJSON saved to ${filename}`);
-  }
-
 	async function loadFeatures() {
-		//to do: run script nightly to get geojson from itos
-    // const itos_url = `https://apps.itos.uga.edu/codv2api/api/v1/themes/cod-ab/locations/${LOCATION}/versions/current/geoJSON/1`;
-    // const geojson_data = await get_geojson(itos_url);
-    // save_geojson(currentFeatures, 'updated_data.geojson');
-
-		if (THEME === 'orgs')
-			colorRange = orgsColorRange
-		else if (THEME === 'hno')
-		  colorRange = hnoColorRange;
-		else if (THEME === 'ipc')
-		  colorRange = ipcColorRange;
-		else 
-			colorRange = popColorRange;
+    const colorRange = colorRanges[THEME] || colorRanges.population;
 
 		//for demo, use local copies of geojson
-		const response = await fetch(`itos-${LOCATION}.geojson`, {
-			body: JSON.stringify()
-		});
+		const response = await fetch(`itos-${LOCATION}.geojson`);
 	  const geojson_data = await response.json();
 	  currentFeatures = match_geojson(geojson_data, data);
 
-  	const max = d3.max(currentFeatures.features, function(d) { return +d.properties.indicator_value; });
+  	const max = d3.max(currentFeatures.features, d => +d.properties.indicator_value);
   	colorScale = d3.scaleQuantize().domain([0, max]).range(colorRange);
 
-	  currentFeatures.features.forEach(function(f) {
-	    let prop = f.properties;
-	    prop['color'] = (prop.indicator_value==='NA') ? '#CCC' : colorScale(+prop.indicator_value)
+	  currentFeatures.features.forEach(f => {
+	    const prop = f.properties;
+	    prop.color = prop.indicator_value==='NA' ? '#CCC' : colorScale(+prop.indicator_value)
 	  });
 
 	  map.addSource('indicator-data', {
@@ -200,60 +172,9 @@
 	  //mouse events
 	  map.on('mouseenter', 'indicator-layer', onMouseEnter);
 	  map.on('mouseleave', 'indicator-layer', onMouseLeave);
-	  map.on('mousemove', 'indicator-layer', function(e) {
-	    map.getCanvas().style.cursor = 'pointer';
-
-	    const prop = e.features[0].properties;
-	    let adm0_name = findAdm0Name(prop);
-	    let content = `<h2>${prop.ADM1_NAME}, ${adm0_name}</h2>`;
-
-	    if (THEME === 'population') {
-	    	content += `<span class='theme'>Population:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-	    }
-	    else if (THEME === 'orgs') {
-	    	let val = (prop.indicator_value==='NA') ? 'No data' : shortFormat(prop.indicator_value);
-	    	content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${val}</div>`;
-	    	if (sectorsObject[prop.ADM1_PCODE]) {
-	    		content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
-		    	let sectors = sectorsObject[prop.ADM1_PCODE].sort();
-
-		    	content += `<ul class="sector-list">`;
-					sectors.forEach((sector, i) => {
-						content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
-					});
-					content += `</ul>`;
-				}
-	    }
-	    else if (THEME === 'hno') {
-	    	if (prop.indicator_value==='NA') {
-		    	content += `<span class='theme'>People in need:</span><div class="stat">No data</div>`;
-	    	}
-	    	else {
-		    	content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-		    	content += `<hr><ul class="sector-list">`;
-		    	content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
-		    	content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
-		    	content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
-		    	content += `</ul>`;
-	    	}
-	    }
-	    else if (THEME === 'ipc') {
-	    	let val = (prop.indicator_value===0) ? 0 : shortFormat(prop.indicator_value);
-	    	content += `<span class='theme'>Population in IPC Phase 3+:</span><br><span class="stat">${val}</span> (${d3.format(".0%")(prop.percentInPhase)})`;
-	    }
-	    else {
-	    	content += `<span class='theme'>${THEME}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
-	    }
-
-	    tooltip.setHTML(content);
-	    tooltip
-	      .addTo(map)
-	      .setLngLat(e.lngLat);
-	  });
+	  map.on('mousemove', 'indicator-layer', onMouseMove);
 
 	  zoomToBounds();
-
-	  //create map legend
 	  createMapLegend();
 	}
 
@@ -273,8 +194,8 @@
 	function zoomToBounds() {
 		//zoom map to bounds
 		const pad = isMobile() ? {top: 20, right: 20, bottom: 50, left: 20} : {top: 50, right: 50, bottom: 125, left: 50};
-		if (currentFeatures !== undefined) {
-			let bbox = turf.bbox(currentFeatures);
+		if (currentFeatures) {
+			const bbox = turf.bbox(currentFeatures);
 			map.fitBounds(bbox, {padding: pad, duration: 100});
 		}
 	}
@@ -285,7 +206,6 @@
 		d3.select('.legend-title').text(legendTitle);
 
 	  const svg = d3.select(mapLegend);
-
 		const colorLegend = legendColor()
 	    .labelFormat(d3.format('.2s'))
 	    .scale(colorScale);
@@ -301,16 +221,11 @@
 
   function getLegendTitle() {
     switch (THEME) {
-      case 'population':
-        return 'Population';
-      case 'orgs':
-        return 'Number of Organizations';
-      case 'hno':
-        return 'Number of People in Need';
-      case 'ipc':
-        return 'Population in IPC Phase 3+';
-      default:
-        return THEME;
+      case 'population': return 'Population';
+      case 'orgs': return 'Number of Organizations';
+      case 'hno': return 'Number of People in Need';
+      case 'ipc': return 'Population in IPC Phase 3+';
+      default: return THEME;
     }
   }
 
@@ -319,10 +234,51 @@
 	  map.getCanvas().style.cursor = 'pointer';
 	  tooltip.addTo(map);
 	}
+
 	function onMouseLeave(e) {
 	  map.getCanvas().style.cursor = '';
 	  tooltip.remove();
 	}
+
+  function onMouseMove(e) {
+    const prop = e.features[0].properties;
+    const adm0_name = findAdmName(prop, ['ADM0_EN', 'ADM0_ES', 'ADM0_FR', 'ADM0_PT']);
+    let content = `<h2>${prop.ADM1_NAME}, ${adm0_name}</h2>`;
+
+    if (THEME === 'population') {
+      content += `<span class='theme'>Population:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+    } else if (THEME === 'orgs') {
+      const val = prop.indicator_value === 'NA' ? 'No data' : shortFormat(prop.indicator_value);
+      content += `<span class='theme'>Humanitarian organizations present:</span><div class="stat">${val}</div>`;
+      if (sectorsObject[prop.ADM1_PCODE]) {
+        content += `<hr>Clusters present: ${sectorsObject[prop.ADM1_PCODE].length}`;
+        const sectors = sectorsObject[prop.ADM1_PCODE].sort();
+        content += `<ul class="sector-list">`;
+        sectors.forEach(sector => {
+          content += `<li><i class="${humIcons[sector]}"></i> ${sector}</li>`;
+        });
+        content += `</ul>`;
+      }
+    } else if (THEME === 'hno') {
+      if (prop.indicator_value === 'NA') {
+        content += `<span class='theme'>People in need:</span><div class="stat">No data</div>`;
+      } else {
+        content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+        content += `<hr><ul class="sector-list">`;
+        content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
+        content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
+        content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
+        content += `</ul>`;
+      }
+    } else if (THEME === 'ipc') {
+      const val = prop.indicator_value === 0 ? 0 : shortFormat(prop.indicator_value);
+      content += `<span class='theme'>Population in IPC Phase 3+:</span><br><span class="stat">${val}</span> (${d3.format(".0%")(prop.population_fraction_in_phase)})`;
+    } else {
+      content += `<span class='theme'>${THEME}:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
+    }
+
+    tooltip.setHTML(content).addTo(map).setLngLat(e.lngLat);
+  }
 
 	onDestroy(() => {
 		if (map) {

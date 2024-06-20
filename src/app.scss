@@ -271,7 +271,10 @@ p.no-data-msg {
   position: relative;
 }
 
-
+.git-banner {
+  position: absolute;
+  right: 0;
+}
 
 @media (max-width: 768px) {
   body {

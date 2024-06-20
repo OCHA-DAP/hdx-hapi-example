@@ -19,46 +19,46 @@
 
 
 	function formatData(data) {
-    console.log('hno data', data)
     const pinAdm1Object = {};
+
     data.forEach(item => {
       let { admin1_code, admin1_name, population_status, population_group, disabled_marker, sector_code, population } = item;
+
+      if (!admin1_code) return;
+
       population = +population;
 
-      if (admin1_code!==undefined) {
+      //initialize admin1_code group if doesnt already exist
+      if (!pinAdm1Object[admin1_code]) {
+        pinAdm1Object[admin1_code] = {
+          admin1_name,
+          populationInnAll: 0,
+          populationTgtAll: 0,
+          populationReaAll: 0,
+          populationInnIdp: 0,
+          populationInnRef: 0
+        };
+      }
 
-        // Initialize admin1_code group if not already present
-        if (!pinAdm1Object[admin1_code]) {
-          pinAdm1Object[admin1_code] = {
-            admin1_name: admin1_name,
-            populationInnAll: 0,
-            populationTgtAll: 0,
-            populationReaAll: 0,
-            populationInnIdp: 0,
-            populationInnRef: 0
-          };
+      //filter diff populations= groups
+      if (population_group === 'all' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
+        if (population_status === 'INN') {
+          pinAdm1Object[admin1_code].populationInnAll += population;
+        } 
+        else if (population_status === 'TGT') {
+          pinAdm1Object[admin1_code].populationTgtAll += population;
+        } 
+        else if (population_status === 'REA') {
+          pinAdm1Object[admin1_code].populationReaAll += population;
         }
+      }
 
-        // Check conditions and accumulate populations
-        if (population_group === 'all' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
-          if (population_status === 'INN') {
-            pinAdm1Object[admin1_code].populationInnAll += population;
-          } 
-          else if (population_status === 'TGT') {
-            pinAdm1Object[admin1_code].populationTgtAll += population;
-          } 
-          else if (population_status === 'REA') {
-            pinAdm1Object[admin1_code].populationReaAll += population;
-          }
-        }
-
-        if (population_status === 'INN' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
-          if (population_group === 'IDP') {
-            pinAdm1Object[admin1_code].populationInnIdp += population;
-          } 
-          else if (population_group === 'REF') {
-            pinAdm1Object[admin1_code].populationInnRef += population;
-          }
+      if (population_status === 'INN' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
+        if (population_group === 'IDP') {
+          pinAdm1Object[admin1_code].populationInnIdp += population;
+        } 
+        else if (population_group === 'REF') {
+          pinAdm1Object[admin1_code].populationInnRef += population;
         }
       }
     });
@@ -77,7 +77,6 @@
       };
     }
     mapData = Object.values(pinAdm1);
-    console.log('mapData', mapData)
 
     //get pin key figures
     const idpPin = data.filter(row => row.sector_code === 'Intersectoral' && row.disabled_marker === 'all' && row.population_group === 'IDP' && row.population_status === 'INN');
@@ -87,34 +86,18 @@
     totalValue2 = d3.sum(refPin, d => d.population);
 
     //get pin by sector for bar chart
-    const pinSector = {};
-    data.forEach(d => {
-      if (d.population_status === 'INN' && d.sector_code !== 'Intersectoral' && d.disabled_marker === 'all') {
-        const sector = d.sector_name;
-        const population = +d.population;
-        
-        if (!isNaN(population)) {
-          if (pinSector[sector]) {
-            pinSector[sector] += population;
-          } 
-          else {
-            pinSector[sector] = population;
-          }
+    const pinSector = data.reduce((acc, { sector_name, population_status, sector_code, disabled_marker, population }) => {
+      if (population_status === 'INN' && sector_code !== 'Intersectoral' && disabled_marker === 'all') {
+        const populationValue = +population;
+        if (!isNaN(populationValue)) {
+          acc[sector_name] = (acc[sector_name] || 0) + populationValue;
         }
       }
-    });
+      return acc;
+    }, {});
 
     //convert to array
-    let sectorPinArray = [];
-    for (const sector in pinSector) {
-      sectorPinArray.push({
-        name: sector,
-        value: pinSector[sector]
-      });
-    }
-    
-    chartData = sectorPinArray;
-    console.log('sectorPinArray',sectorPinArray)
+    chartData = Object.entries(pinSector).map(([name, value]) => ({ name, value }));
   }
 
 	onMount(() => {
