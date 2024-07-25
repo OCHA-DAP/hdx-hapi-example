@@ -141,8 +141,9 @@
 	async function loadFeatures() {
     const colorRange = colorRanges[THEME] || colorRanges.population;
 
-		//for demo, use local copies of geojson
-		const response = await fetch(`itos-${LOCATION}.geojson`);
+    //get geojson for current location
+		const geojson_url = `https://raw.githubusercontent.com/OCHA-DAP/hdx-hapi-example-geojson/560aeb8b408376412060fd8aa20f9666e960a591/geojson/itos-${LOCATION}.geojson`
+		const response = await fetch(geojson_url);
 	  const geojson_data = await response.json();
 	  currentFeatures = match_geojson(geojson_data, data);
 
