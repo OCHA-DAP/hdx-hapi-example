@@ -116,12 +116,12 @@
           <div class='grid-container key-figure-container'>
             {#if totalValue1>0}
               <div class='col-6'>
-                <KeyFigure title={'Internally Displaced People'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
+                <KeyFigure title={'Internally Displaced People in Need'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
               </div>
             {/if}
             {#if totalValue2>0}
               <div class='col-6'>
-                <KeyFigure title={'Refugees'} value={totalValue2} metadata={metadata[0]} endpoint={endpoint} />
+                <KeyFigure title={'Refugees in Need'} value={totalValue2} metadata={metadata[0]} endpoint={endpoint} />
               </div>
             {/if}
           </div>
