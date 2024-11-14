@@ -55,13 +55,13 @@
   const views = [
     {name: 'Population', id: 'population', endpoint: `population-social/population?admin_level=1`},
     {name: 'Operational Presence', id: 'orgs', endpoint: `coordination-context/operational-presence?admin_level=2`},
-    // {name: 'Humanitarian Needs', id: 'hno', endpoint: `affected-people/humanitarian-needs?gender=all&age_range=ALL&admin_level=1`},
+    {name: 'Humanitarian Needs', id: 'hno', endpoint: `affected-people/humanitarian-needs?admin_level=1`},
     {name: 'Food Insecurity', id: 'ipc', endpoint: `food/food-security?ipc_type=current&admin_level=2`}
   ];
 
   const keyFigures = [
     {id: 'Population', endpoint: `population-social/population?gender=all&age_range=all&admin_level=0`},
-    {id: 'HNO', endpoint: `affected-people/humanitarian-needs?gender=all&age_range=ALL&disabled_marker=all&sector_name=Intersectoral&admin_level=0`},
+    {id: 'HNO', endpoint: `affected-people/humanitarian-needs?sector_name=Intersectoral&admin_level=0`},
     {id: 'Conflict', endpoint: `coordination-context/conflict-event?event_type=civilian_targeting&admin_level=2`},
     {id: 'Risk', endpoint: `coordination-context/national-risk?output_format=csv`},
     {id: 'Funding', endpoint: `coordination-context/funding?`}
@@ -123,7 +123,7 @@
       const metadataEndpoint = generateMetadataEndpoint(data[0].resource_hdx_id);
       const metadata = await fetchDataWithRateLimit(metadataEndpoint, delay + 100);
 
-      console.log('---view endpoint', endpoint)
+      //console.log('---view endpoint', endpoint)
       viewsData = [...viewsData, { id: view.id, data, metadata, endpoint }];
 
       delay += rateDelay;

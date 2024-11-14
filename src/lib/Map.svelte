@@ -267,8 +267,6 @@
         content += `<span class='theme'>People in need:</span><div class="stat">${shortFormat(prop.indicator_value)}</div>`;
         content += `<hr><ul class="sector-list">`;
         content += `<li>People Targeted: ${numFormat(prop.targeted)}</li>`;
-        content += `<li>Internally Displaced People: ${numFormat(prop.idp)}</li>`;
-        content += `<li>Refugees: ${numFormat(prop.refugees)}</li>`;
         content += `</ul>`;
       }
     } else if (THEME === 'ipc') {

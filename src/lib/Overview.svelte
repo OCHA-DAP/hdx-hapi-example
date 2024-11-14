@@ -22,7 +22,7 @@
     }
     
     //HNO
-    const pin = hno.data?.find(row => row.population_group === 'all' && row.population_status === 'INN');
+    const pin = hno.data?.find(row => row.category === 'total' && row.population_status === 'INN');
     if (pin) {
       updateData({
         title: 'People in Need',
@@ -32,15 +32,15 @@
       }, 1);
     }
 
-    const rea = hno.data?.find(row => row.population_group === 'all' && row.population_status === 'REA');
-    if (rea) {
-      updateData({
-        title: 'People Reached',
-        value: +rea.population,
-        metadata: hno.metadata?.[0],
-        endpoint: hno.endpoint
-      }, 2);
-    }
+    // const rea = hno.data?.find(row => row.category === 'total' && row.population_status === 'REA');
+    // if (rea) {
+    //   updateData({
+    //     title: 'People Reached',
+    //     value: +rea.population,
+    //     metadata: hno.metadata?.[0],
+    //     endpoint: hno.endpoint
+    //   }, 2);
+    // }
 
     //Conflict
     if (conflict.data) {

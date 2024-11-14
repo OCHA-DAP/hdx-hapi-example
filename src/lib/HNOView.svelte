@@ -14,7 +14,7 @@
 
   let mapData = [];
   let chartData = [];
-  let totalValue1, totalValue2;
+  let totalValue1, totalValue2, totalValue3;
   let sidebarWidth;
 
 
@@ -22,7 +22,7 @@
     const pinAdm1Object = {};
 
     data.forEach(item => {
-      let { admin1_code, admin1_name, population_status, population_group, disabled_marker, sector_code, population } = item;
+      let { admin1_code, admin1_name, population_status, category, sector_code, population } = item;
 
       if (!admin1_code) return;
 
@@ -36,31 +36,35 @@
           populationTgtAll: 0,
           populationReaAll: 0,
           populationInnIdp: 0,
-          populationInnRef: 0
+          populationInnRef: 0,
+          populationInnRet: 0
         };
       }
 
       //filter diff populations= groups
-      if (population_group === 'all' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
+      if (sector_code === 'Intersectoral' && category === 'total') {
         if (population_status === 'INN') {
           pinAdm1Object[admin1_code].populationInnAll += population;
         } 
-        else if (population_status === 'TGT') {
+        else if (population_status === 'TGT' && category === 'total') {
           pinAdm1Object[admin1_code].populationTgtAll += population;
         } 
-        else if (population_status === 'REA') {
+        else if (population_status === 'REA' && category === 'total') {
           pinAdm1Object[admin1_code].populationReaAll += population;
         }
       }
 
-      if (population_status === 'INN' && disabled_marker === 'all' && sector_code === 'Intersectoral') {
-        if (population_group === 'IDP') {
-          pinAdm1Object[admin1_code].populationInnIdp += population;
-        } 
-        else if (population_group === 'REF') {
-          pinAdm1Object[admin1_code].populationInnRef += population;
-        }
-      }
+      // if (population_status === 'INN' && sector_code === 'Intersectoral') {
+      //   if (population_group === 'IDP') {
+      //     pinAdm1Object[admin1_code].populationInnIdp += population;
+      //   } 
+      //   else if (population_group === 'REF') {
+      //     pinAdm1Object[admin1_code].populationInnRef += population;
+      //   }
+      //   else if (population_group === 'RET') {
+      //     pinAdm1Object[admin1_code].populationInnRet += population;
+      //   }
+      // }
     });
 
     //convert to array of objects
@@ -74,20 +78,21 @@
         reached: attr.populationReaAll,
         idp: attr.populationInnIdp,
         ref: attr.populationInnRef,
+        ret: attr.populationInnRet,
       };
     }
     mapData = Object.values(pinAdm1);
 
     //get pin key figures
-    const idpPin = data.filter(row => row.sector_code === 'Intersectoral' && row.disabled_marker === 'all' && row.population_group === 'IDP' && row.population_status === 'INN');
-    totalValue1 = d3.sum(idpPin, d => d.population);
+    // const pinTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'INN');
+    // totalValue1 = d3.sum(pinTotal, d => d.population);
 
-    const refPin = data.filter(row => row.sector_code === 'Intersectoral' && row.disabled_marker === 'all' && row.population_group === 'REF' && row.population_status === 'INN');
-    totalValue2 = d3.sum(refPin, d => d.population);
+    const tgtTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'TGT');
+    totalValue2 = d3.sum(tgtTotal, d => d.population);
 
     //get pin by sector for bar chart
-    const pinSector = data.reduce((acc, { sector_name, population_status, sector_code, disabled_marker, population }) => {
-      if (population_status === 'INN' && sector_code !== 'Intersectoral' && disabled_marker === 'all') {
+    const pinSector = data.reduce((acc, { sector_name, population_status, sector_code, category, population }) => {
+      if (population_status === 'INN' && sector_code !== 'Intersectoral' && category === 'total') {
         const populationValue = +population;
         if (!isNaN(populationValue)) {
           acc[sector_name] = (acc[sector_name] || 0) + populationValue;
@@ -116,12 +121,12 @@
           <div class='grid-container key-figure-container'>
             {#if totalValue1>0}
               <div class='col-6'>
-                <KeyFigure title={'Internally Displaced People in Need'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
+                <KeyFigure title={'People in Need'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
               </div>
             {/if}
             {#if totalValue2>0}
               <div class='col-6'>
-                <KeyFigure title={'Refugees in Need'} value={totalValue2} metadata={metadata[0]} endpoint={endpoint} />
+                <KeyFigure title={'People Targeted'} value={totalValue2} metadata={metadata[0]} endpoint={endpoint} />
               </div>
             {/if}
           </div>
