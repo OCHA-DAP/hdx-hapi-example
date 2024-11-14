@@ -55,7 +55,7 @@
   const views = [
     {name: 'Population', id: 'population', endpoint: `population-social/population?admin_level=1`},
     {name: 'Operational Presence', id: 'orgs', endpoint: `coordination-context/operational-presence?admin_level=2`},
-    {name: 'Humanitarian Needs', id: 'hno', endpoint: `affected-people/humanitarian-needs?gender=all&age_range=ALL&admin_level=1`},
+    // {name: 'Humanitarian Needs', id: 'hno', endpoint: `affected-people/humanitarian-needs?gender=all&age_range=ALL&admin_level=1`},
     {name: 'Food Insecurity', id: 'ipc', endpoint: `food/food-security?ipc_type=current&admin_level=2`}
   ];
 
