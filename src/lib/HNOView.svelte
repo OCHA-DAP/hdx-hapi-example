@@ -12,11 +12,14 @@
   export let endpoint;
   export let iso3;
 
+  $: selectedYear = '';
+
   let mapData = [];
   let chartData = [];
   let totalValue1, totalValue2, totalValue3;
   let sidebarWidth;
-
+  let years = [];
+  let yearsData = {};
 
 	function formatData(data) {
     const pinAdm1Object = {};
@@ -53,18 +56,6 @@
           pinAdm1Object[admin1_code].populationReaAll += population;
         }
       }
-
-      // if (population_status === 'INN' && sector_code === 'Intersectoral') {
-      //   if (population_group === 'IDP') {
-      //     pinAdm1Object[admin1_code].populationInnIdp += population;
-      //   } 
-      //   else if (population_group === 'REF') {
-      //     pinAdm1Object[admin1_code].populationInnRef += population;
-      //   }
-      //   else if (population_group === 'RET') {
-      //     pinAdm1Object[admin1_code].populationInnRet += population;
-      //   }
-      // }
     });
 
     //convert to array of objects
@@ -75,10 +66,7 @@
         admin1_name: attr.admin1_name,
         value: attr.populationInnAll,
         targeted: attr.populationTgtAll,
-        reached: attr.populationReaAll,
-        idp: attr.populationInnIdp,
-        ref: attr.populationInnRef,
-        ret: attr.populationInnRet,
+        reached: attr.populationReaAll
       };
     }
     mapData = Object.values(pinAdm1);
@@ -105,8 +93,71 @@
     chartData = Object.entries(pinSector).map(([name, value]) => ({ name, value }));
   }
 
-	onMount(() => {
-    if (data) formatData(data);
+  function disaggregateDataByYear(data) {
+    const disaggregatedData = {};
+
+    data.forEach(item => {
+      const year = new Date(item.reference_period_start).getFullYear();
+      
+      // Check if the year is a valid number
+      if (isNaN(year)) {
+        return; 
+      }
+
+      if (!disaggregatedData[year]) {
+        disaggregatedData[year] = [];
+      }
+      disaggregatedData[year].push(item);
+    });
+
+    return disaggregatedData;
+  }
+  
+  function onYearSelect(event) {
+    selectedYear = event.target.value;
+    let selectedYearData = yearsData[selectedYear];
+
+    formatData(selectedYearData);
+  }
+
+
+ 	onMount(() => {
+    if (data) {
+      console.log('HNO data', data)
+
+      yearsData = disaggregateDataByYear(data);
+
+      // for testing
+      yearsData['2025'] = [{        
+        "location_ref": 1,
+        "location_code": "AFG",
+        "location_name": "Afghanistan",
+        "admin1_ref": 1,
+        "admin1_code": "AF01",
+        "admin1_name": "Kabul",
+        "provider_admin1_name": "Kabul",
+        "admin2_ref": 30898,
+        "admin2_code": null,
+        "admin2_name": null,
+        "provider_admin2_name": "",
+        "resource_hdx_id": "8e3931a5-452b-4583-9d02-2247a34e397b",
+        "sector_code": "FSC",
+        "category": "Adult",
+        "population_status": "INN",
+        "population": 1025289,
+        "reference_period_start": "2025-01-01T00:00:00",
+        "reference_period_end": "2025-12-31T23:59:59",
+        "sector_name": "Intersectoral"
+      }]
+      console.log('by year', yearsData)
+      //
+
+      years = Object.keys(yearsData);
+      selectedYear = years[0];
+      let selectedYearData = yearsData[selectedYear];
+
+      formatData(selectedYearData);
+    }
 	})
 </script>
 
@@ -114,6 +165,16 @@
 <div class='content grid-container'>
 
   {#if data && metadata}
+
+    <div class='col-12 no-border'>
+      <div class='select-wrapper'>
+        <select class='year-select' bind:value={selectedYear} on:change={onYearSelect}>
+          {#each years as year}
+            <option value={year}>{year}</option>
+          {/each}
+        </select>
+      </div>
+    </div>
     
     <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
       {#if sidebarWidth>0}
@@ -133,17 +194,19 @@
           <hr>
         {/if}
 
-        <h3 class='chart-title'>People in Need by Sector</h3>
-        <div class='ranking-container'>
-          {#if chartData.length>0}
+
+        {#if chartData.length>0}
+          <h3 class='chart-title'>People in Need by Sector</h3>
+          <div class='ranking-container'>
             <Bar data={chartData} width={sidebarWidth} />
             <Source metadata={metadata[0]} endpoint={endpoint} align={'right'} />
-          {/if}
-        </div>
+          </div>
+        {/if}
+
       {/if}
     </div>
     <div class='main-content col-7'>
-      {#if mapData.length>0}
+      {#if mapData.length>1}
         <Map mapData={mapData} THEME={id} LOCATION={iso3} />
       {/if}
     </div>
@@ -159,4 +222,10 @@
 </div>
 
 <style lang='scss'>
+  .select-wrapper {
+    width: 100px;
+    select {
+      height: 38px;
+    }
+  }
 </style>

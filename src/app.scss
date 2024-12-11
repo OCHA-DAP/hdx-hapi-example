@@ -165,6 +165,9 @@ select {
   > div {
     border-top: 1px solid #CCC;
     margin-left: 15px;
+    &.no-border {
+      border-top: 0;
+    }
   }
 }
 .map {
