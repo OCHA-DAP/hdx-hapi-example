@@ -12,7 +12,6 @@
 	let provider = metadata.dataset_hdx_provider_name ?? 'Source';
 
 	function copyQuery(query) {
-		console.log(`${query}&app_identifier=[your app identifier]`)
 		navigator.clipboard.writeText(`${query}&app_identifier=[your app identifier]`);
 	}
 </script>

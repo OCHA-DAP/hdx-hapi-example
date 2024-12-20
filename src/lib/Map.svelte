@@ -142,9 +142,10 @@
     const colorRange = colorRanges[THEME] || colorRanges.population;
 
     //get geojson for current location
-		const geojson_url = `https://raw.githubusercontent.com/OCHA-DAP/hdx-hapi-example-geojson/560aeb8b408376412060fd8aa20f9666e960a591/geojson/itos-${LOCATION}.geojson`
+		const geojson_url = `https://raw.githubusercontent.com/OCHA-DAP/hdx-hapi-example-geojson/834dd99f118358fbbebb314e2b2efb5f0b26fc7c/geojson/itos-${LOCATION}.geojson`
 		const response = await fetch(geojson_url);
 	  const geojson_data = await response.json();
+	  
 	  currentFeatures = match_geojson(geojson_data, data);
 
   	const max = d3.max(currentFeatures.features, d => +d.properties.indicator_value);

@@ -24,12 +24,14 @@
 	function formatData(data) {
     const pinAdm1Object = {};
 
+    console.log(data)
     data.forEach(item => {
-      let { admin1_code, admin1_name, population_status, category, sector_code, population } = item;
+      let { admin1_code, admin1_name, population_status, category, sector_name, population } = item;
 
       if (!admin1_code) return;
 
       population = +population;
+
 
       //initialize admin1_code group if doesnt already exist
       if (!pinAdm1Object[admin1_code]) {
@@ -38,14 +40,14 @@
           populationInnAll: 0,
           populationTgtAll: 0,
           populationReaAll: 0,
-          populationInnIdp: 0,
-          populationInnRef: 0,
-          populationInnRet: 0
+          // populationInnIdp: 0,
+          // populationInnRef: 0,
+          // populationInnRet: 0
         };
       }
 
       //filter diff populations= groups
-      if (sector_code === 'Intersectoral' && category === 'total') {
+      if (sector_name === 'Intersectoral' && category === 'total') {
         if (population_status === 'INN') {
           pinAdm1Object[admin1_code].populationInnAll += population;
         } 
@@ -58,6 +60,7 @@
       }
     });
 
+    console.log('pinAdm1Object',pinAdm1Object)
     //convert to array of objects
     const pinAdm1 = {};
     for (const [admin1_code, attr] of Object.entries(pinAdm1Object)) {
@@ -69,7 +72,10 @@
         reached: attr.populationReaAll
       };
     }
+
+    console.log('pinAdm1', pinAdm1)
     mapData = Object.values(pinAdm1);
+    console.log('mapData',mapData)
 
     //get pin key figures
     // const pinTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'INN');
@@ -126,30 +132,31 @@
       console.log('HNO data', data)
 
       yearsData = disaggregateDataByYear(data);
+      console.log('yearsData',yearsData)
 
       // for testing
-      yearsData['2025'] = [{        
-        "location_ref": 1,
-        "location_code": "AFG",
-        "location_name": "Afghanistan",
-        "admin1_ref": 1,
-        "admin1_code": "AF01",
-        "admin1_name": "Kabul",
-        "provider_admin1_name": "Kabul",
-        "admin2_ref": 30898,
-        "admin2_code": null,
-        "admin2_name": null,
-        "provider_admin2_name": "",
-        "resource_hdx_id": "8e3931a5-452b-4583-9d02-2247a34e397b",
-        "sector_code": "FSC",
-        "category": "Adult",
-        "population_status": "INN",
-        "population": 1025289,
-        "reference_period_start": "2025-01-01T00:00:00",
-        "reference_period_end": "2025-12-31T23:59:59",
-        "sector_name": "Intersectoral"
-      }]
-      console.log('by year', yearsData)
+      // yearsData['2025'] = [{        
+      //   "location_ref": 1,
+      //   "location_code": "AFG",
+      //   "location_name": "Afghanistan",
+      //   "admin1_ref": 1,
+      //   "admin1_code": "AF01",
+      //   "admin1_name": "Kabul",
+      //   "provider_admin1_name": "Kabul",
+      //   "admin2_ref": 30898,
+      //   "admin2_code": null,
+      //   "admin2_name": null,
+      //   "provider_admin2_name": "",
+      //   "resource_hdx_id": "8e3931a5-452b-4583-9d02-2247a34e397b",
+      //   "sector_code": "FSC",
+      //   "category": "Adult",
+      //   "population_status": "INN",
+      //   "population": 1025289,
+      //   "reference_period_start": "2025-01-01T00:00:00",
+      //   "reference_period_end": "2025-12-31T23:59:59",
+      //   "sector_name": "Intersectoral"
+      // }]
+      // console.log('by year', yearsData)
       //
 
       years = Object.keys(yearsData);
@@ -166,15 +173,17 @@
 
   {#if data && metadata}
 
-    <div class='col-12 no-border'>
-      <div class='select-wrapper'>
-        <select class='year-select' bind:value={selectedYear} on:change={onYearSelect}>
-          {#each years as year}
-            <option value={year}>{year}</option>
-          {/each}
-        </select>
+    {#if years.length>1}
+      <div class='col-12 no-border'>
+        <div class='select-wrapper'>
+          <select class='year-select' bind:value={selectedYear} on:change={onYearSelect}>
+            {#each years as year}
+              <option value={year}>{year}</option>
+            {/each}
+          </select>
+        </div>
       </div>
-    </div>
+    {/if}
     
     <div class='sidebar col-5' bind:clientWidth={sidebarWidth}>
       {#if sidebarWidth>0}

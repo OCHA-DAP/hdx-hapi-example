@@ -18,7 +18,15 @@
   let abortController;
 
   let selectedTab = 0;
-  $: selectedCountry = 'AFG'; //default selected country
+
+  // get location from url
+  let url = window.location.href;
+  let params = new URLSearchParams(window.location.search);
+  let location = params.get('location');
+  let selectedCountry = location && location.trim() !== '' ? location.toUpperCase() : 'AFG';
+  //$: selectedCountry = 'AFG'; //default selected country
+
+  $: updateLocation();
 
   const base_url = 'https://hapi.humdata.org/api/v1/';
   const app_indentifier = 'aGFwaS1kYXNoYm9hcmQ6ZXJpa2Eud2VpQHVuLm9yZw==';
@@ -66,6 +74,13 @@
     {id: 'Risk', endpoint: `coordination-context/national-risk?output_format=csv`},
     {id: 'Funding', endpoint: `coordination-context/funding?`}
   ];
+
+  // Function to update the URL
+  function updateLocation() {
+    const url = new URL(window.location.href); // Get the current URL
+    url.searchParams.set('location', selectedCountry); // Update the 'location' parameter
+    window.history.pushState({}, '', url); // Push the updated URL to the browser history
+  }
 
   async function fetchData(endpoint) {
     try {
@@ -164,6 +179,9 @@
 
   async function onCountryChange(event) {
     selectedCountry = event.target.value;
+    
+    // Update the URL
+    updateLocation();
 
     //abort ongoing fetch requests, create new controller
     abortController.abort(); 
@@ -207,7 +225,7 @@
   onMount(async () => {
     abortController = new AbortController();
     loadData();
-    initTracking()
+    initTracking();
   });
 </script>
 
