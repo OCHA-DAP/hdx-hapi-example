@@ -24,7 +24,7 @@
 	function formatData(data) {
     const pinAdm1Object = {};
 
-    console.log(data)
+    //console.log(data)
     data.forEach(item => {
       let { admin1_code, admin1_name, population_status, category, sector_name, population } = item;
 
@@ -60,7 +60,6 @@
       }
     });
 
-    console.log('pinAdm1Object',pinAdm1Object)
     //convert to array of objects
     const pinAdm1 = {};
     for (const [admin1_code, attr] of Object.entries(pinAdm1Object)) {
@@ -73,13 +72,11 @@
       };
     }
 
-    console.log('pinAdm1', pinAdm1)
     mapData = Object.values(pinAdm1);
-    console.log('mapData',mapData)
 
     //get pin key figures
-    // const pinTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'INN');
-    // totalValue1 = d3.sum(pinTotal, d => d.population);
+    const pinTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'INN');
+    totalValue1 = d3.sum(pinTotal, d => d.population);
 
     const tgtTotal = data.filter(row => row.sector_code === 'Intersectoral' && row.category === 'total' && row.population_status === 'TGT');
     totalValue2 = d3.sum(tgtTotal, d => d.population);
@@ -129,10 +126,7 @@
 
  	onMount(() => {
     if (data) {
-      console.log('HNO data', data)
-
       yearsData = disaggregateDataByYear(data);
-      console.log('yearsData',yearsData)
 
       // for testing
       // yearsData['2025'] = [{        
@@ -159,7 +153,7 @@
       // console.log('by year', yearsData)
       //
 
-      years = Object.keys(yearsData);
+      years = Object.keys(yearsData).reverse();
       selectedYear = years[0];
       let selectedYearData = yearsData[selectedYear];
 
@@ -191,7 +185,7 @@
           <div class='grid-container key-figure-container'>
             {#if totalValue1>0}
               <div class='col-6'>
-                <KeyFigure title={'People in Need'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.3s'} />
+                <KeyFigure title={'People in Need'} value={totalValue1} metadata={metadata[0]} endpoint={endpoint} valueFormat={'.2s'} />
               </div>
             {/if}
             {#if totalValue2>0}

@@ -28,7 +28,7 @@
     return userAgentCheck || screenSizeCheck;
 	}
 
-	function init() {console.log('ismobile',isMobile())
+	function init() {
 		//remove any empty rows
 		chartData = chartData.filter(row => row.name !== '');
 

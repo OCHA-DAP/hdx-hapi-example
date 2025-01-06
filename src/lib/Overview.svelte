@@ -22,15 +22,15 @@
     }
     
     //HNO
-    const pin = hno.data?.find(row => row.category === 'total' && row.population_status === 'INN');
-    if (pin) {
-      updateData({
-        title: 'People in Need',
-        value: +pin.population,
-        metadata: hno.metadata?.[0],
-        endpoint: hno.endpoint
-      }, 1);
-    }
+    // const pin = hno.data?.find(row => row.category === 'total' && row.population_status === 'INN');
+    // if (pin) {
+    //   updateData({
+    //     title: 'People in Need',
+    //     value: +pin.population,
+    //     metadata: hno.metadata?.[0],
+    //     endpoint: hno.endpoint
+    //   }, 1);
+    // }
 
     // const rea = hno.data?.find(row => row.category === 'total' && row.population_status === 'REA');
     // if (rea) {
