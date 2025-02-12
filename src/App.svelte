@@ -28,7 +28,7 @@
 
   $: updateLocation();
 
-  const base_url = 'https://hapi.humdata.org/api/v1/';
+  const base_url = 'https://feature.hapi-humdata-org.ahconu.org/api/v2/';//https://hapi.humdata.org/api/v1/';
   const app_indentifier = 'aGFwaS1kYXNoYm9hcmQ6ZXJpa2Eud2VpQHVuLm9yZw==';
   const rateDelay = 0;
 
@@ -61,16 +61,16 @@
   ];
 
   const views = [
-    {name: 'Population', id: 'population', endpoint: `population-social/population?admin_level=1`},
+    {name: 'Population', id: 'population', endpoint: `geography-infrastructure/baseline-population?admin_level=1`},
     {name: 'Operational Presence', id: 'orgs', endpoint: `coordination-context/operational-presence?admin_level=2`},
     {name: 'Humanitarian Needs', id: 'hno', endpoint: `affected-people/humanitarian-needs?admin_level=1`},
-    {name: 'Food Insecurity', id: 'ipc', endpoint: `food/food-security?ipc_type=current&admin_level=2`}
+    {name: 'Food Insecurity', id: 'ipc', endpoint: `food-security-nutrition-poverty/food-security?ipc_type=current&admin_level=2`}
   ];
 
   const keyFigures = [
-    {id: 'Population', endpoint: `population-social/population?gender=all&age_range=all&admin_level=0`},
+    {id: 'Population', endpoint: `geography-infrastructure/baseline-population?gender=all&age_range=all&admin_level=0`},
     {id: 'HNO', endpoint: `affected-people/humanitarian-needs?sector_name=Intersectoral&admin_level=0`},
-    {id: 'Conflict', endpoint: `coordination-context/conflict-event?event_type=civilian_targeting&admin_level=2`},
+    {id: 'Conflict', endpoint: `coordination-context/conflict-events?event_type=civilian_targeting&admin_level=2`},
     {id: 'Risk', endpoint: `coordination-context/national-risk?output_format=csv`},
     {id: 'Funding', endpoint: `coordination-context/funding?`}
   ];

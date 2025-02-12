@@ -42,6 +42,7 @@
     'Emergency Telecommunications': 'humanitarianicons-Emergency-Telecommunications',
     'Food Security': 'humanitarianicons-Food-Security',
     'Gender Based Violence': 'humanitarianicons-Gender-based-violence',
+    'Housing, Land and Property': 'humanitarianicons-House',
     'Protection': 'humanitarianicons-Protection',
     'Health': 'humanitarianicons-Health',
     'Logistics': 'humanitarianicons-Logistics',
