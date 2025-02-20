@@ -28,7 +28,7 @@
 
   $: updateLocation();
 
-  const base_url = 'https://feature.hapi-humdata-org.ahconu.org/api/v2/';//https://hapi.humdata.org/api/v1/';
+  const base_url = 'https://hapi.humdata.org/api/v2/';;
   const app_indentifier = 'aGFwaS1kYXNoYm9hcmQ6ZXJpa2Eud2VpQHVuLm9yZw==';
   const rateDelay = 0;
 
